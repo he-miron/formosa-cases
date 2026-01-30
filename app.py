@@ -1,22 +1,24 @@
 import streamlit as st
 import pandas as pd
 
-# 1. Configurações Iniciais
-st.set_page_config(page_title="Formosa Cases Admin", layout="wide")
+# CONFIGURAÇÃO DO LINK DA PLANILHA
+# Use exatamente este formato abaixo:
+SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhJW43nfokHKiBwhu64dORzbzD8m8Haxy8tEbGRsysr8JG1Wq8s7qgRfHT5ZLLUBkAuHzUJFKODEDZ/pub?output=csv"
 
-# 2. Conexão com Google Sheets (Troque o ID abaixo pelo seu)
-SHEET_ID = ``https://docs.google.com/spreadsheets/d/e/2PACX-1vQhJW43nfokHKiBwhu64dORzbzD8m8Haxy8tEbGRsysr8JG1Wq8s7qgRfHT5ZLLUBkAuHzUJFKODEDZ/pub?output=csv``
-SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
-
-@st.cache_data(ttl=60) # Atualiza os dados a cada 60 segundos
+@st.cache_data(ttl=60)
 def carregar_dados():
+    # O comando abaixo lê o link da planilha
     return pd.read_csv(SHEET_URL)
 
+# --- RESTO DO SEU CÓDIGO ABAIXO ---
 try:
     df = carregar_dados()
-except:
-    st.error("Erro ao conectar com a planilha. Verifique o ID e a permissão de compartilhamento.")
+    st.success("Dados carregados com sucesso!")
+except Exception as e:
+    st.error(f"Erro ao conectar com a planilha: {e}")
     st.stop()
+
+# Aqui continua a parte visual (o grid de produtos que te passei antes)
 
 # 3. Estilização (Mesmo estilo Shopee anterior)
 st.markdown("""
