@@ -1,50 +1,53 @@
 import streamlit as st
+import pandas as pd
 
-# Configuração da página
-st.set_page_config(page_title="Formosa Case Express", page_icon="📱")
+# 1. Configurações Iniciais
+st.set_page_config(page_title="Formosa Cases Admin", layout="wide")
 
-st.title("📱 Formosa Case Express")
-st.subheader("As melhores capinhas e películas em Formosa-GO")
+# 2. Conexão com Google Sheets (Troque o ID abaixo pelo seu)
+SHEET_ID = https://docs.google.com/spreadsheets/d/e/2PACX-1vQhJW43nfokHKiBwhu64dORzbzD8m8Haxy8tEbGRsysr8JG1Wq8s7qgRfHT5ZLLUBkAuHzUJFKODEDZ/pub?output=csv
+SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
 
-# Simulação de Banco de Dados
-produtos = [
-    {"nome": "Capinha Silicone MagSafe", "preco": 45.00, "tipo": "Capinha"},
-    {"nome": "Película de Cerâmica Privativa", "preco": 30.00, "tipo": "Película"},
-    {"nome": "Capinha Anti-Impacto Transparente", "preco": 35.00, "tipo": "Capinha"},
-    {"nome": "Película de Vidro 3D", "preco": 20.00, "tipo": "Película"}
-]
+@st.cache_data(ttl=60) # Atualiza os dados a cada 60 segundos
+def carregar_dados():
+    return pd.read_csv(SHEET_URL)
 
-# Carrinho de compras
-if 'carrinho' not in st.session_state:
-    st.session_state.carrinho = []
+try:
+    df = carregar_dados()
+except:
+    st.error("Erro ao conectar com a planilha. Verifique o ID e a permissão de compartilhamento.")
+    st.stop()
 
-# Interface
-tab1, tab2 = st.tabs(["🛒 Loja", "📦 Meu Carrinho"])
+# 3. Estilização (Mesmo estilo Shopee anterior)
+st.markdown("""
+    <style>
+    .product-card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
+    .price { color: #ee4d2d; font-size: 22px; font-weight: bold; }
+    .stButton>button { background-color: #ee4d2d; color: white; width: 100%; border-radius: 20px; }
+    </style>
+    """, unsafe_allow_html=True)
 
-with tab1:
-    st.write("### Escolha seus itens:")
-    for produto in produtos:
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            st.write(f"**{produto['nome']}** - R$ {produto['preco']:.2f}")
-        with col2:
-            if st.button(f"Adicionar", key=produto['nome']):
-                st.session_state.carrinho.append(produto)
-                st.toast(f"{produto['nome']} adicionado!")
+st.title("📱 Formosa Cases Online")
+st.write("---")
 
-with tab2:
-    if len(st.session_state.carrinho) == 0:
-        st.write("Seu carrinho está vazio.")
-    else:
-        total = sum(item['preco'] for item in st.session_state.carrinho)
-        for item in st.session_state.carrinho:
-            st.write(f"- {item['nome']}: R$ {item['preco']:.2f}")
+# 4. Exibição dos Produtos vindos da Planilha
+cols = st.columns(2)
+
+for index, row in df.iterrows():
+    with cols[index % 2]:
+        st.markdown(f"""
+            <div class="product-card">
+                <img src="{row['img']}" style="width:100%; max-height:150px; object-fit: contain;">
+                <h4>{row['nome']}</h4>
+                <p style="font-size: 12px; color: gray;">{row['desc']}</p>
+                <p class="price">R$ {row['preco']:.2f}</p>
+            </div>
+        """, unsafe_allow_html=True)
         
-        st.write(f"### Total: R$ {total:.2f}")
-        
-        # Finalização via WhatsApp (O segredo para rodar rápido)
-        endereco = st.text_input("Endereço de Entrega em Formosa:")
-        if st.button("Finalizar Pedido via WhatsApp"):
-            msg = f"Olá! Gostaria de pedir: {len(st.session_state.carrinho)} itens. Total: R${total}. Entrega em: {endereco}"
-            link_whatsapp = f"https://wa.me/5561999999999?text={msg.replace(' ', '%20')}"
-            st.markdown(f"[CLIQUE AQUI PARA ENVIAR O PEDIDO]({link_whatsapp})")
+        if st.button(f"Comprar {row['nome']}", key=f"btn_{index}"):
+            # Lógica de checkout simplificada para WhatsApp
+            zap_link = f"https://wa.me/5561999999999?text=Quero%20o%20produto:%20{row['nome']}"
+            st.success("Produto selecionado!")
+            st.markdown(f"[CLIQUE AQUI PARA PEDIR NO WHATSAPP]({zap_link})")
+
+st.sidebar.info("Dica: Para atualizar preços e fotos, basta editar sua Planilha do Google e atualizar esta página.")
