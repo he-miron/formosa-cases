@@ -48,7 +48,7 @@ for index, row in df.iterrows():
         
         if st.button(f"Comprar {row['nome']}", key=f"btn_{index}"):
             # Lógica de checkout simplificada para WhatsApp
-            zap_link = f"https://wa.me/5561999999999?text=Quero%20o%20produto:%20{row['nome']}"
+            zap_link = f"https://wa.me/5561991937857?text=Quero%20o%20produto:%20{row['nome']}"
             st.success("Produto selecionado!")
             st.markdown(f"[CLIQUE AQUI PARA PEDIR NO WHATSAPP]({zap_link})")
 
