@@ -53,26 +53,21 @@ try:
                     <p style="font-size:10px; color:#25D366;">⚡ Entrega Expressa</p>
                 </div>
             """, unsafe_allow_html=True)
-            
-            with st.sidebar:
+            # 5. ÁREA DE CHECKOUT (Barra Lateral)
+with st.sidebar:
+    # Tudo aqui dentro tem 4 espaços de recuo
     st.header("🛒 Finalizar Pedido")
     nome = st.text_input("Seu Nome")
     endereco = st.text_input("Endereço (Rua e Número)")
     bairro = st.selectbox("Seu Bairro em Formosa", ["Centro", "Formosinha", "Planaltina", "Parque da Colina", "Jardim das Américas", "Outro"])
     
     if st.button("🚀 CONFIRMAR COMPRA"):
-        if nome and endereco: # Só prossegue se tiver nome e endereço
-            seu_numero = "5561991937857" 
-            # Criamos uma mensagem organizada para o WhatsApp
-            msg = f"*NOVO PEDIDO - FORMOSA CASES*\n\n" \
-                  f"👤 *Cliente:* {nome}\n" \
-                  f"📍 *Endereço:* {endereco}\n" \
-                  f"🏘️ *Bairro:* {bairro}\n" \
-                  f"--------------------------\n" \
-                  f"Verifique os itens no carrinho acima."
-            
+        if nome and endereco:
+            seu_numero = "5561999999999" 
+            msg = f"*NOVO PEDIDO*\n\n👤 Cliente: {nome}\n📍 Endereço: {endereco}\n🏘️ Bairro: {bairro}"
             link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20').replace('\n', '%0A')}"
-            st.success("Dados validados! Clique no botão abaixo para enviar o pedido.")
-            st.markdown(f'[ENVIAR PARA O WHATSAPP]({link_zap})')
+            
+            st.success("Dados validados!")
+            st.markdown(f'<a href="{link_zap}" target="_blank" style="background-color: #25D366; color: white; padding: 10px; text-decoration: none; border-radius: 5px; display: block; text-align: center;">ENVIAR PARA O WHATSAPP</a>', unsafe_allow_html=True)
         else:
-            st.error("⚠️ Por favor, preencha seu nome e endereço para entrega.")
+            st.error("⚠️ Preencha nome e endereço!")
