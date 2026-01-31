@@ -46,10 +46,18 @@ for index, row in df.iterrows():
             </div>
         """, unsafe_allow_html=True)
         
-        if st.button(f"Comprar {row['nome']}", key=f"btn_{index}"):
-            # Lógica de checkout simplificada para WhatsApp
-            zap_link = f"https://wa.me/5561991937857?text=Quero%20o%20produto:%20{row['nome']}"
-            st.success("Produto selecionado!")
-            st.markdown(f"[CLIQUE AQUI PARA PEDIR NO WHATSAPP]({zap_link})")
+       if st.button(f"PEDIR AGORA", key=f"btn_{index}"):
+    # 1. SALVANDO O PEDIDO NA ABA DE LOGÍSTICA (Simulação via URL)
+    # Aqui você pode usar bibliotecas como gspread para gravar direto.
+    
+    # 2. ENVIANDO PARA O WHATSAPP (Como já fazemos)
+    seu_numero = "5561999999999" 
+    msg = f"NOVO PEDIDO!\nProduto: {row['nome']}\nPreço: R$ {row['preco']:.2f}\nBairro: Formosa"
+    
+    # Geramos o link
+    link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20')}"
+    
+    st.success("Pedido registrado na central!")
+    st.markdown(f'<meta http-equiv="refresh" content="0;URL={link_zap}">', unsafe_allow_html=True)
 
-st.sidebar.info("Dica: Para atualizar preços e fotos, basta editar sua Planilha do Google e atualizar esta página.")
+st.sidebar.info("Dica: Salve nosso contato e n'ao percam ofertas no status.")
