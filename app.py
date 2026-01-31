@@ -96,7 +96,7 @@ with st.sidebar:
             st.write("Toque em um produto para comprar.")
 
     # Vitrine de Produtos
-     try:
+try:
         df = load_data()
         cols = st.columns(2)
         for idx, row in df.iterrows():
