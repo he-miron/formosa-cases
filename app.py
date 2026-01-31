@@ -73,7 +73,7 @@ else:
             
             nome = st.text_input("Nome Completo")
             endereco = st.text_input("Rua e Número")
-            bairro = st.selectbox("Bairro", ["Centro", "Formosinha", "Jardim das Américas", "Parque da Colina", "Setor Sul"])
+            bairro = st.selectbox("Bairro", ["Centro", "Formosinha"])
             
             if st.button("🚀 FINALIZAR AGORA"):
                 if nome and endereco:
