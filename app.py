@@ -33,31 +33,25 @@ st.title("📱 Formosa Cases Online")
 st.write("---")
 
 # 4. Exibição dos Produtos vindos da Planilha
-cols = st.columns(2)
 
-for index, row in df.iterrows():
-    with cols[index % 2]:
-        st.markdown(f"""
-            <div class="product-card">
-                <img src="{row['img']}" style="width:100%; max-height:150px; object-fit: contain;">
-                <h4>{row['nome']}</h4>
-                <p style="font-size: 12px; color: gray;">{row['desc']}</p>
-                <p class="price">R$ {row['preco']:.2f}</p>
-            </div>
-        """, unsafe_allow_html=True)
-        
-       if st.button(f"PEDIR AGORA", key=f"btn_{index}"):
-    # 1. SALVANDO O PEDIDO NA ABA DE LOGÍSTICA (Simulação via URL)
-    # Aqui você pode usar bibliotecas como gspread para gravar direto.
+   cols = st.columns(2) 
     
-    # 2. ENVIANDO PARA O WHATSAPP (Como já fazemos)
-    seu_numero = "5561999999999" 
-    msg = f"NOVO PEDIDO!\nProduto: {row['nome']}\nPreço: R$ {row['preco']:.2f}\nBairro: Formosa"
-    
-    # Geramos o link
-    link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20')}"
-    
-    st.success("Pedido registrado na central!")
-    st.markdown(f'<meta http-equiv="refresh" content="0;URL={link_zap}">', unsafe_allow_html=True)
-
+    for index, row in df.iterrows():
+        with cols[index % 2]:
+            # Todo esse bloco abaixo deve ter o mesmo recuo (4 ou 8 espaços)
+            st.markdown(f"""
+                <div class="product-card">
+                    <img src="{row['img']}" style="width:100%; border-radius:5px; height:150px; object-fit:cover;">
+                    <p style="font-size:14px; margin-top:10px; height:40px; overflow:hidden;"><b>{row['nome']}</b></p>
+                    <p class="price-tag">R$ {row['preco']:.2f}</p>
+                    <p style="font-size:10px; color:#25D366;">⚡ Entrega Hoje em Formosa</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # ESTE BOTÃO DEVE ESTAR ALINHADO COM O st.markdown ACIMA
+            if st.button(f"PEDIR AGORA", key=f"btn_{index}"):
+                seu_numero = "5561999999999" 
+                msg = f"Olá! Vi no App e quero: {row['nome']} (R$ {row['preco']:.2f})"
+                link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20')}"
+                st.markdown(f'<meta http-equiv="refresh" content="0;URL={link_zap}">', unsafe_allow_html=True)
 st.sidebar.info("Dica: Salve nosso contato e n'ao percam ofertas no status.")
