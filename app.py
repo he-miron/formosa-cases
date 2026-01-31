@@ -92,3 +92,21 @@ except Exception as e:
     st.error("Erro ao carregar produtos. Verifique sua planilha.")
 
 st.markdown("<br><br><p style='text-align:center; color:gray; font-size:10px;'>Formosa Cases Express © 2026</p>", unsafe_allow_html=True)
+# 5. ÁREA DE CHECKOUT (Barra Lateral)
+with st.sidebar:
+    # Tudo aqui dentro tem 4 espaços de recuo
+    st.header("🛒 Finalizar Pedido")
+    nome = st.text_input("Seu Nome")
+    endereco = st.text_input("Endereço (Rua e Número)")
+    bairro = st.selectbox("Seu Bairro em Formosa", ["Centro", "Formosinha", "Planaltina", "Parque da Colina", "Jardim das Américas", "Outro"])
+    
+    if st.button("🚀 CONFIRMAR COMPRA"):
+        if nome and endereco:
+            seu_numero = "5561999999999" 
+            msg = f"*NOVO PEDIDO*\n\n👤 Cliente: {nome}\n📍 Endereço: {endereco}\n🏘️ Bairro: {bairro}"
+            link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20').replace('\n', '%0A')}"
+            
+            st.success("Dados validados!")
+            st.markdown(f'<a href="{link_zap}" target="_blank" style="background-color: #25D366; color: white; padding: 10px; text-decoration: none; border-radius: 5px; display: block; text-align: center;">ENVIAR PARA O WHATSAPP</a>', unsafe_allow_html=True)
+        else:
+            st.error("⚠️ Preencha nome e endereço!")
