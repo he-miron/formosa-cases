@@ -1,64 +1,53 @@
 import streamlit as st
 import pandas as pd
 
-# 1. Configurações de página
-st.set_page_config(page_title="Formosa Cases", layout="wide", page_icon="📱")
+# 1. Configurações Iniciais
+st.set_page_config(page_title="Formosa Cases Admin", layout="wide")
 
-# 2. Estilo Visual Shopee
+# 2. Conexão com Google Sheets (Troque o ID abaixo pelo seu)
+SHEET_ID = "COLOQUE_AQUI_O_ID_DA_SUA_PLANILHA"
+SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
+
+@st.cache_data(ttl=60) # Atualiza os dados a cada 60 segundos
+def carregar_dados():
+    return pd.read_csv(SHEET_URL)
+
+try:
+    df = carregar_dados()
+except:
+    st.error("Erro ao conectar com a planilha. Verifique o ID e a permissão de compartilhamento.")
+    st.stop()
+
+# 3. Estilização (Mesmo estilo Shopee anterior)
 st.markdown("""
     <style>
-    .stApp { background-color: #f5f5f5; }
-    .shopee-header {
-        background-color: #ee4d2d;
-        padding: 15px;
-        color: white;
-        text-align: center;
-        border-radius: 0 0 20px 20px;
-        margin-bottom: 20px;
-    }
-    .product-card {
-        background-color: white;
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        margin-bottom: 15px;
-    }
-    .price-tag { color: #ee4d2d; font-size: 1.3rem; font-weight: bold; }
-    .stButton>button { background-color: #ee4d2d; color: white; width: 100%; border: none; }
+    .product-card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
+    .price { color: #ee4d2d; font-size: 22px; font-weight: bold; }
+    .stButton>button { background-color: #ee4d2d; color: white; width: 100%; border-radius: 20px; }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. Conexão com a Planilha
-SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhJW43nfokHKiBwhu64dORzbzD8m8Haxy8tEbGRsysr8JG1Wq8s7qgRfHT5ZLLUBkAuHzUJFKODEDZ/pub?output=csv"
+st.title("📱 Formosa Cases Online")
+st.write("---")
 
-@st.cache_data(ttl=60)
-def load_data():
-    return pd.read_csv(SHEET_URL)
+# 4. Exibição dos Produtos vindos da Planilha
+cols = st.columns(2)
 
-# Cabeçalho
-st.markdown('<div class="shopee-header"><h1>📱 FORMOSA CASES</h1><p>O Shopping das Capinhas em Formosa</p></div>', unsafe_allow_html=True)
+for index, row in df.iterrows():
+    with cols[index % 2]:
+        st.markdown(f"""
+            <div class="product-card">
+                <img src="{row['img']}" style="width:100%; max-height:150px; object-fit: contain;">
+                <h4>{row['nome']}</h4>
+                <p style="font-size: 12px; color: gray;">{row['desc']}</p>
+                <p class="price">R$ {row['preco']:.2f}</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button(f"Comprar {row['nome']}", key=f"btn_{index}"):
+            # Lógica de checkout simplificada para WhatsApp
+            zap_link = f"https://wa.me/5561999999999?text=Quero%20o%20produto:%20{row['nome']}"
+            st.success("Produto selecionado!")
+            st.markdown(f"[CLIQUE AQUI PARA PEDIR NO WHATSAPP]({zap_link})")
 
-# 4. Bloco de Exibição (Atenção ao alinhamento aqui!)
-try:
-    df = load_data()
-    cols = st.columns(2) # Esta linha deve estar alinhada com o 'df = load_data()'
-
-    for index, row in df.iterrows():
-        with cols[index % 2]:
-            st.markdown(f"""
-                <div class="product-card">
-                    <img src="{row['img']}" style="width:100%; border-radius:5px; height:150px; object-fit:cover;">
-                    <p style="font-size:14px; margin-top:10px; height:40px; overflow:hidden;"><b>{row['nome']}</b></p>
-                    <p class="price-tag">R$ {row['preco']:.2f}</p>
-                    <p style="font-size:10px; color:#25D366;">⚡ Entrega Expressa</p>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            if st.button(f"PEDIR AGORA", key=f"btn_{index}"):
-                seu_numero = "5561999999999" 
-                msg = f"Olá! Quero pedir: {row['nome']} (R$ {row['preco']:.2f})"
-                link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20')}"
-                st.markdown(f'<meta http-equiv="refresh" content="0;URL={link_zap}">', unsafe_allow_html=True)
-
-except Exception as e:
-    st.error(f"Erro ao carregar dados: {e}")
+st.sidebar.info("Dica: Para atualizar preços e fotos, basta editar sua Planilha do Google e atualizar esta página.")
