@@ -33,8 +33,7 @@ st.title("📱 Formosa Cases Online")
 st.write("---")
 
 # 4. Exibição dos Produtos vindos da Planilha
-
-   cols = st.columns(2) 
+  cols = st.columns(2) 
     
     for index, row in df.iterrows():
         with cols[index % 2]:
