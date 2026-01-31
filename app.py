@@ -65,7 +65,7 @@ else:
     st.markdown('<div class="header"><h1>📱 FORMOSA CASES</h1><p>Entrega em até 2h em Formosa</p></div>', unsafe_allow_html=True)
 
     # Sidebar de Checkout
-    with st.sidebar:
+with st.sidebar:
         st.header("🛒 Seu Pedido")
         if st.session_state.carrinho:
             st.write(f"**Item:** {st.session_state.carrinho['nome']}")
@@ -73,16 +73,25 @@ else:
             
             nome = st.text_input("Nome Completo")
             endereco = st.text_input("Rua e Número")
-            bairro = st.selectbox("Bairro", ["Centro", "Formosinha"])
+            bairro = st.selectbox("Bairro", ["Centro", "Formosinha", "Setor Sul", "Parque Lago"])
             
-            if st.button("🚀 FINALIZAR AGORA"):
-                if nome and endereco:
-                    zap_num = "5561991937857"
-                    msg = f"*NOVO PEDIDO*\n\n*Item:* {st.session_state.carrinho['nome']}\n*Cliente:* {nome}\n*Endereço:* {endereco}\n*Bairro:* {bairro}"
-                    link = f"https://wa.me/{zap_num}?text={msg.replace(' ', '%20').replace('\n', '%0A')}"
-                    st.markdown(f'<meta http-equiv="refresh" content="0;URL={link}">', unsafe_allow_html=True)
-                else:
-                    st.error("Preencha os dados de entrega!")
+            if nome and endereco:
+                # Gerar a mensagem e o link
+                zap_num = "5561991937857"
+                msg = f"*NOVO PEDIDO - FORMOSA CASES*\n\n" \
+                      f"*Produto:* {st.session_state.carrinho['nome']}\n" \
+                      f"*Cliente:* {nome}\n" \
+                      f"*Endereço:* {endereco}\n" \
+                      f"*Bairro:* {bairro}\n" \
+                      f"*Total:* R$ {st.session_state.carrinho['preco']:.2f}"
+                
+                link_whatsapp = f"https://wa.me/{zap_num}?text={msg.replace(' ', '%20').replace('\n', '%0A')}"
+                
+                # BOTÃO REAL DE LINK (Único que funciona 100% no celular)
+                st.link_button("✅ ENVIAR PEDIDO PARA WHATSAPP", link_whatsapp, use_container_width=True)
+                st.caption("Ao clicar, seu WhatsApp abrirá com o pedido pronto.")
+            else:
+                st.warning("Preencha Nome e Endereço para liberar o botão.")
         else:
             st.write("Toque em um produto para comprar.")
 
