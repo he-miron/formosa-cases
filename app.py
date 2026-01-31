@@ -59,7 +59,7 @@ if modo_logistica:
 
 else:
     # ---------------- QUEBRA DE PÁGINA: LOJA (CLIENTE) ----------------
-    st.markdown('<div class="header"><h1>📱 FORMOSA CASES</h1><p>Entrega em até 2h em Formosa</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="header"><h1>📱 FORMOSA CASES</h1><p>Entrega em até 24h em Formosa</p></div>', unsafe_allow_html=True)
 
 # Sidebar de Checkout (Otimizado para Celular)
     with st.sidebar:
@@ -87,7 +87,7 @@ else:
                 # Usando o link_button com um ícone para melhorar o clique no touch
                 st.link_button("📲 FINALIZAR NO WHATSAPP", link_whatsapp, use_container_width=True)
                 
-                st.info("👆 Se o WhatsApp não abrir automaticamente, clique no botão acima.")
+                st.info("👆 Se o WhatsApp não abrir automaticamente, ligue 67 9 9193-7857.")
             else:
                 st.warning("Preencha Nome e Endereço.")
         else:
