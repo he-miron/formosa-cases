@@ -46,7 +46,7 @@ with st.sidebar:
     
     if st.button("🚀 CONFIRMAR COMPRA"):
         if nome and endereco: # Só prossegue se tiver nome e endereço
-            seu_numero = "5561999999999" 
+            seu_numero = "5561991937857" 
             # Criamos uma mensagem organizada para o WhatsApp
             msg = f"*NOVO PEDIDO - FORMOSA CASES*\n\n" \
                   f"👤 *Cliente:* {nome}\n" \
