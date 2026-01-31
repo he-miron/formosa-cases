@@ -38,10 +38,10 @@ def load_data():
 # Cabeçalho
 st.markdown('<div class="shopee-header"><h1>📱 FORMOSA CASES</h1><p>O Shopping das Capinhas em Formosa</p></div>', unsafe_allow_html=True)
 
-# 4. Bloco de Exibição (Atenção ao alinhamento aqui!)
+# 4. Bloco de Exibição de Produtos
 try:
     df = load_data()
-    cols = st.columns(2) # Esta linha deve estar alinhada com o 'df = load_data()'
+    cols = st.columns(2) 
 
     for index, row in df.iterrows():
         with cols[index % 2]:
@@ -53,9 +53,14 @@ try:
                     <p style="font-size:10px; color:#25D366;">⚡ Entrega Expressa</p>
                 </div>
             """, unsafe_allow_html=True)
-            # 5. ÁREA DE CHECKOUT (Barra Lateral)
+            # Botão apenas para feedback visual (opcional)
+            st.button(f"Ver detalhes", key=f"det_{index}")
+
+except Exception as e:
+    st.error(f"Erro ao carregar dados: {e}")
+
+# 5. ÁREA DE CHECKOUT (Barra Lateral - Fora de qualquer bloco anterior)
 with st.sidebar:
-    # Tudo aqui dentro tem 4 espaços de recuo
     st.header("🛒 Finalizar Pedido")
     nome = st.text_input("Seu Nome")
     endereco = st.text_input("Endereço (Rua e Número)")
@@ -63,11 +68,12 @@ with st.sidebar:
     
     if st.button("🚀 CONFIRMAR COMPRA"):
         if nome and endereco:
+            # Substitua pelo SEU número real com DDD
             seu_numero = "5561999999999" 
-            msg = f"*NOVO PEDIDO*\n\n👤 Cliente: {nome}\n📍 Endereço: {endereco}\n🏘️ Bairro: {bairro}"
+            msg = f"*NOVO PEDIDO - FORMOSA CASES*\n\n👤 Cliente: {nome}\n📍 Endereço: {endereco}\n🏘️ Bairro: {bairro}"
             link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20').replace('\n', '%0A')}"
             
             st.success("Dados validados!")
-            st.markdown(f'<a href="{link_zap}" target="_blank" style="background-color: #25D366; color: white; padding: 10px; text-decoration: none; border-radius: 5px; display: block; text-align: center;">ENVIAR PARA O WHATSAPP</a>', unsafe_allow_html=True)
+            st.markdown(f'<a href="{link_zap}" target="_blank" style="background-color: #25D366; color: white; padding: 12px; text-decoration: none; border-radius: 5px; display: block; text-align: center; font-weight: bold;">ENVIAR PARA O WHATSAPP</a>', unsafe_allow_html=True)
         else:
             st.error("⚠️ Preencha nome e endereço!")
