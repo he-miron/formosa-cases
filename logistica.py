@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Conecte ao link da aba de "Vendas" da sua planilha
-SHEET_URL = "SEU_LINK_AQUI"
+SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhJW43nfokHKiBwhu64dORzbzD8m8Haxy8tEbGRsysr8JG1Wq8s7qgRfHT5ZLLUBkAuHzUJFKODEDZ/pub?output=csv"
 
 try:
     df = pd.read_csv(SHEET_URL)
