@@ -1,103 +1,109 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 
-# CONFIGURAÇÃO DO LINK DA PLANILHA
-# Use exatamente este formato abaixo:
-SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhJW43nfokHKiBwhu64dORzbzD8m8Haxy8tEbGRsysr8JG1Wq8s7qgRfHT5ZLLUBkAuHzUJFKODEDZ/pub?output=csv"
+# 1. Configurações Iniciais
+st.set_page_config(page_title="Formosa Cases Express", layout="wide", page_icon="📱")
 
-@st.cache_data(ttl=60)
-def carregar_dados():
-    # O comando abaixo lê o link da planilha
-    return pd.read_csv(SHEET_URL)
+# Inicializar memória de seleção
+if 'carrinho' not in st.session_state:
+    st.session_state.carrinho = None
 
-# --- RESTO DO SEU CÓDIGO ABAIXO ---
-try:
-    df = carregar_dados()
-    st.success("Dados carregados com sucesso!")
-except Exception as e:
-    st.error(f"Erro ao conectar com a planilha: {e}")
-    st.stop()
-
+# 2. Estilo Visual (CSS Shopee Dark/Orange)
 st.markdown("""
     <style>
-    /* Estilo Fundo e Fontes */
-    .stApp { background-color: #f5f5f5; }
-    
-    /* Header Estilo Shopee */
-    .shopee-header {
-        background-color: #ee4d2d;
-        padding: 15px;
-        color: white;
-        text-align: center;
-        font-family: 'Arial';
-        border-radius: 0 0 20px 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    /* Card de Produto */
-    .product-card {
-        background-color: white;
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        margin-bottom: 15px;
-        border: 1px solid #eee;
-    }
-    
-    .price-tag {
-        color: #ee4d2d;
-        font-size: 1.3rem;
-        font-weight: bold;
-    }
-
-    /* Botão de Compra */
-    .stButton>button {
-        background-color: #ee4d2d;
-        color: white;
-        border-radius: 5px;
-        border: none;
-        width: 100%;
-        font-weight: bold;
-    }
+    .stApp { background-color: #f0f2f5; }
+    .header { background-color: #ee4d2d; padding: 20px; color: white; text-align: center; border-radius: 0 0 20px 20px; margin-bottom: 20px; }
+    .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; margin-bottom: 20px; }
+    .price { color: #ee4d2d; font-size: 1.4rem; font-weight: bold; }
+    .stButton>button { background-color: #ee4d2d; color: white; width: 100%; border-radius: 8px; height: 45px; }
+    .log-card { background: #2d2d2d; color: #fff; padding: 15px; border-radius: 10px; border-left: 5px solid #ee4d2d; margin-bottom: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. Conexão com sua Planilha
+# 3. Conexão com Dados
 SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhJW43nfokHKiBwhu64dORzbzD8m8Haxy8tEbGRsysr8JG1Wq8s7qgRfHT5ZLLUBkAuHzUJFKODEDZ/pub?output=csv"
 
 @st.cache_data(ttl=60)
 def load_data():
     return pd.read_csv(SHEET_URL)
 
-# Cabeçalho
-st.markdown('<div class="shopee-header"><h1>📱 FORMOSA CASES</h1><p>Entrega Ultra Rápida em Formosa-GO</p></div>', unsafe_allow_html=True)
+# --- LÓGICA DE NAVEGAÇÃO ---
+# Se o link tiver ?p=moto, abre logística. Senão, abre loja.
+query_params = st.query_params
+modo_logistica = query_params.get("p") == "moto"
 
-try:
-    df = load_data()
+if modo_logistica:
+    # ---------------- QUEBRA DE PÁGINA: LOGÍSTICA ----------------
+    st.markdown('<div class="header"><h1>🚚 PAINEL ENTREGADOR</h1><p>Logística Formosa Cases</p></div>', unsafe_allow_html=True)
     
-    # Grid de Produtos
-    cols = st.columns(2) # 2 colunas igual na Shopee
-    
-    for index, row in df.iterrows():
-        with cols[index % 2]:
+    try:
+        df = load_data()
+        # Aqui simulamos que a aba de pedidos está na mesma planilha
+        st.subheader("Pedidos Pendentes para Entrega")
+        
+        # Exemplo de visualização para o motoboy
+        for i in range(3): # Simulação de 3 pedidos
             st.markdown(f"""
-                <div class="product-card">
-                    <img src="{row['img']}" style="width:100%; border-radius:5px; height:150px; object-fit:cover;">
-                    <p style="font-size:14px; margin-top:10px; height:40px; overflow:hidden;"><b>{row['nome']}</b></p>
-                    <p class="price-tag">R$ {row['preco']:.2f}</p>
-                    <p style="font-size:10px; color:#25D366;">⚡ Entrega Hoje</p>
+                <div class="log-card">
+                    <p><b>📦 PEDIDO #102{i}</b></p>
+                    <p>📍 Rua 14, Centro - Próximo à Praça</p>
+                    <p>💰 Receber: R$ 59,90 (PIX)</p>
                 </div>
             """, unsafe_allow_html=True)
+            col_gps, col_ok = st.columns(2)
+            with col_gps:
+                st.link_button("🗺️ Abrir GPS", "https://www.google.com/maps/search/Rua+14+Centro+Formosa+GO")
+            with col_ok:
+                if st.button("✅ Entregue", key=f"ent_{i}"):
+                    st.toast("Entrega confirmada!")
+    except:
+        st.error("Erro ao carregar mapa de entregas.")
+
+else:
+    # ---------------- QUEBRA DE PÁGINA: LOJA (CLIENTE) ----------------
+    st.markdown('<div class="header"><h1>📱 FORMOSA CASES</h1><p>Entrega em até 2h em Formosa</p></div>', unsafe_allow_html=True)
+
+    # Sidebar de Checkout
+    with st.sidebar:
+        st.header("🛒 Seu Pedido")
+        if st.session_state.carrinho:
+            st.write(f"**Item:** {st.session_state.carrinho['nome']}")
+            st.write(f"**Total:** R$ {st.session_state.carrinho['preco']:.2f}")
             
-            if st.button(f"PEDIR AGORA", key=f"btn_{index}"):
-                # Link do seu WhatsApp (Coloque seu número abaixo)
-                seu_numero = "5561999999999" 
-                msg = f"Olá! Vi no App e quero: {row['nome']} (R$ {row['preco']:.2f})"
-                link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20')}"
-                st.markdown(f'<meta http-equiv="refresh" content="0;URL={link_zap}">', unsafe_allow_html=True)
+            nome = st.text_input("Nome Completo")
+            endereco = st.text_input("Rua e Número")
+            bairro = st.selectbox("Bairro", ["Centro", "Formosinha", "Jardim das Américas", "Parque da Colina", "Setor Sul"])
+            
+            if st.button("🚀 FINALIZAR AGORA"):
+                if nome and endereco:
+                    zap_num = "5561991937857"
+                    msg = f"*NOVO PEDIDO*\n\n*Item:* {st.session_state.carrinho['nome']}\n*Cliente:* {nome}\n*Endereço:* {endereco}\n*Bairro:* {bairro}"
+                    link = f"https://wa.me/{zap_num}?text={msg.replace(' ', '%20').replace('\n', '%0A')}"
+                    st.markdown(f'<meta http-equiv="refresh" content="0;URL={link}">', unsafe_allow_html=True)
+                else:
+                    st.error("Preencha os dados de entrega!")
+        else:
+            st.write("Toque em um produto para comprar.")
 
-except Exception as e:
-    st.error("Adicione produtos na sua planilha para eles aparecerem aqui!")
+    # Vitrine de Produtos
+    try:
+        df = load_data()
+        cols = st.columns(2)
+        for idx, row in df.iterrows():
+            with cols[idx % 2]:
+                st.markdown(f"""
+                    <div class="card">
+                        <img src="{row['img']}" style="width:100%; border-radius:10px; height:150px; object-fit:cover;">
+                        <p style="margin:10px 0 5px 0;"><b>{row['nome']}</b></p>
+                        <p class="price">R$ {row['preco']:.2f}</p>
+                    </div>
+                """, unsafe_allow_html=True)
+                if st.button("➕ SELECIONAR", key=f"venda_{idx}"):
+                    st.session_state.carrinho = {"nome": row['nome'], "preco": row['preco']}
+                    st.rerun()
+    except Exception as e:
+        st.error("Erro ao carregar vitrine.")
 
-st.markdown("<br><br><p style='text-align:center; color:gray; font-size:10px;'>Formosa Cases Express © 2026</p>", unsafe_allow_html=True)
+st.markdown("---")
+st.caption("Formosa Cases Express - Sistema Integrado 2026")
