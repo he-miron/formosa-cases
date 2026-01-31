@@ -38,27 +38,25 @@ def load_data():
 # Cabeçalho
 st.markdown('<div class="shopee-header"><h1>📱 FORMOSA CASES</h1><p>O Shopping das Capinhas em Formosa</p></div>', unsafe_allow_html=True)
 
-# 4. Bloco de Exibição (Atenção ao alinhamento aqui!)
-try:
-    df = load_data()
-    cols = st.columns(2) # Esta linha deve estar alinhada com o 'df = load_data()'
-
-    for index, row in df.iterrows():
-        with cols[index % 2]:
-            st.markdown(f"""
-                <div class="product-card">
-                    <img src="{row['img']}" style="width:100%; border-radius:5px; height:150px; object-fit:cover;">
-                    <p style="font-size:14px; margin-top:10px; height:40px; overflow:hidden;"><b>{row['nome']}</b></p>
-                    <p class="price-tag">R$ {row['preco']:.2f}</p>
-                    <p style="font-size:10px; color:#25D366;">⚡ Entrega Expressa</p>
-                </div>
-            """, unsafe_allow_html=True)
+with st.sidebar:
+    st.header("🛒 Finalizar Pedido")
+    nome = st.text_input("Seu Nome")
+    endereco = st.text_input("Endereço (Rua e Número)")
+    bairro = st.selectbox("Seu Bairro em Formosa", ["Centro", "Formosinha", "Planaltina", "Parque da Colina", "Jardim das Américas", "Outro"])
+    
+    if st.button("🚀 CONFIRMAR COMPRA"):
+        if nome and endereco: # Só prossegue se tiver nome e endereço
+            seu_numero = "5561999999999" 
+            # Criamos uma mensagem organizada para o WhatsApp
+            msg = f"*NOVO PEDIDO - FORMOSA CASES*\n\n" \
+                  f"👤 *Cliente:* {nome}\n" \
+                  f"📍 *Endereço:* {endereco}\n" \
+                  f"🏘️ *Bairro:* {bairro}\n" \
+                  f"--------------------------\n" \
+                  f"Verifique os itens no carrinho acima."
             
-            if st.button(f"PEDIR AGORA", key=f"btn_{index}"):
-                seu_numero = "5561999999999" 
-                msg = f"Olá! Quero pedir: {row['nome']} (R$ {row['preco']:.2f})"
-                link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20')}"
-                st.markdown(f'<meta http-equiv="refresh" content="0;URL={link_zap}">', unsafe_allow_html=True)
-
-except Exception as e:
-    st.error(f"Erro ao carregar dados: {e}")
+            link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20').replace('\n', '%0A')}"
+            st.success("Dados validados! Clique no botão abaixo para enviar o pedido.")
+            st.markdown(f'[ENVIAR PARA O WHATSAPP]({link_zap})')
+        else:
+            st.error("⚠️ Por favor, preencha seu nome e endereço para entrega.")
