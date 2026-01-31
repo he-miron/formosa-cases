@@ -61,7 +61,7 @@ else:
     # ---------------- QUEBRA DE PÁGINA: LOJA (CLIENTE) ----------------
     st.markdown('<div class="header"><h1>📱 FORMOSA CASES</h1><p>Entrega em até 2h em Formosa</p></div>', unsafe_allow_html=True)
 
-# Sidebar de Checkout (CORRIGIDO)
+# Sidebar de Checkout (Otimizado para Celular)
     with st.sidebar:
         st.header("🛒 Seu Pedido")
         if st.session_state.carrinho:
@@ -73,7 +73,6 @@ else:
             bairro = st.selectbox("Bairro", ["Centro", "Formosinha", "Setor Sul", "Parque Lago"])
             
             if nome and endereco:
-                # Gerar a mensagem e o link
                 zap_num = "5561991937857"
                 msg = f"*NOVO PEDIDO - FORMOSA CASES*\n\n" \
                       f"*Produto:* {st.session_state.carrinho['nome']}\n" \
@@ -82,13 +81,15 @@ else:
                       f"*Bairro:* {bairro}\n" \
                       f"*Total:* R$ {st.session_state.carrinho['preco']:.2f}"
                 
-                link_whatsapp = f"https://wa.me/{zap_num}?text={msg.replace(' ', '%20').replace('\n', '%0A')}"
+                # Mudamos de wa.me para api.whatsapp.com que é mais compatível com navegadores mobile
+                link_whatsapp = f"https://api.whatsapp.com/send?phone={zap_num}&text={msg.replace(' ', '%20').replace('\n', '%0A')}"
                 
-                # BOTÃO REAL DE LINK (Único que funciona 100% no celular)
-                st.link_button("✅ ENVIAR PEDIDO PARA WHATSAPP", link_whatsapp, use_container_width=True)
-                st.caption("Ao clicar, seu WhatsApp abrirá com o pedido pronto.")
+                # Usando o link_button com um ícone para melhorar o clique no touch
+                st.link_button("📲 FINALIZAR NO WHATSAPP", link_whatsapp, use_container_width=True)
+                
+                st.info("👆 Se o WhatsApp não abrir automaticamente, clique no botão acima.")
             else:
-                st.warning("Preencha Nome e Endereço para liberar o botão.")
+                st.warning("Preencha Nome e Endereço.")
         else:
             st.write("Toque em um produto para comprar.")
 
