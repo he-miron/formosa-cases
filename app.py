@@ -58,7 +58,6 @@ try:
 except Exception as e:
     st.info("Aguardando carregamento da rota...")
 
-
 top de vendas, mas não avre whats no celular-----
 
 import streamlit as st
