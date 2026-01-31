@@ -99,7 +99,7 @@ else:
                         <p class="price">R$ {row['preco']:.2f}</p>
                     </div>
                 """, unsafe_allow_html=True)
-                if st.button("➕ SELECIONAR", key=f"venda_{idx}"):
+                if st.button("Eu Quero", key=f"venda_{idx}"):
                     st.session_state.carrinho = {"nome": row['nome'], "preco": row['preco']}
                     st.rerun()
     except Exception as e:
