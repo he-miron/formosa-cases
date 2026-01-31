@@ -87,7 +87,7 @@ else:
                 # Usando o link_button com um ícone para melhorar o clique no touch
                 st.link_button("📲 FINALIZAR NO WHATSAPP", link_whatsapp, use_container_width=True)
                 
-                st.info("👆 Se o WhatsApp não abrir automaticamente, ligue 67 9 9193-7857.")
+                st.info("👆 Se o WhatsApp não abrir automaticamente, ligue 61 9 9193-7857.")
             else:
                 st.warning("Preencha Nome e Endereço.")
         else:
