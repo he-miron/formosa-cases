@@ -1,23 +1,64 @@
-# --- ÁREA DE CHECKOUT NO APP ---
-with st.sidebar:
-    st.header("🛒 Finalizar Pedido")
-    nome = st.text_input("Seu Nome")
-    endereco = st.text_input("Endereço (Rua e Número)")
-    bairro = st.selectbox("Seu Bairro em Formosa", ["Centro", "Formosinha"])
-    
-    if st.button("🚀 CONFIRMAR COMPRA"):
-        if nome and endereco: # Só prossegue se tiver nome e endereço
-            seu_numero = "5561991937857" 
-            # Criamos uma mensagem organizada para o WhatsApp
-            msg = f"*NOVO PEDIDO - FORMOSA CASES*\n\n" \
-                  f"👤 *Cliente:* {nome}\n" \
-                  f"📍 *Endereço:* {endereco}\n" \
-                  f"🏘️ *Bairro:* {bairro}\n" \
-                  f"--------------------------\n" \
-                  f"Verifique os itens no carrinho acima."
+import streamlit as st
+import pandas as pd
+
+# 1. Configurações de página
+st.set_page_config(page_title="Formosa Cases", layout="wide", page_icon="📱")
+
+# 2. Estilo Visual Shopee
+st.markdown("""
+    <style>
+    .stApp { background-color: #f5f5f5; }
+    .shopee-header {
+        background-color: #ee4d2d;
+        padding: 15px;
+        color: white;
+        text-align: center;
+        border-radius: 0 0 20px 20px;
+        margin-bottom: 20px;
+    }
+    .product-card {
+        background-color: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        margin-bottom: 15px;
+    }
+    .price-tag { color: #ee4d2d; font-size: 1.3rem; font-weight: bold; }
+    .stButton>button { background-color: #ee4d2d; color: white; width: 100%; border: none; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 3. Conexão com a Planilha
+SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhJW43nfokHKiBwhu64dORzbzD8m8Haxy8tEbGRsysr8JG1Wq8s7qgRfHT5ZLLUBkAuHzUJFKODEDZ/pub?output=csv"
+
+@st.cache_data(ttl=60)
+def load_data():
+    return pd.read_csv(SHEET_URL)
+
+# Cabeçalho
+st.markdown('<div class="shopee-header"><h1>📱 FORMOSA CASES</h1><p>O Shopping das Capinhas em Formosa</p></div>', unsafe_allow_html=True)
+
+# 4. Bloco de Exibição (Atenção ao alinhamento aqui!)
+try:
+    df = load_data()
+    cols = st.columns(2) # Esta linha deve estar alinhada com o 'df = load_data()'
+
+    for index, row in df.iterrows():
+        with cols[index % 2]:
+            st.markdown(f"""
+                <div class="product-card">
+                    <img src="{row['img']}" style="width:100%; border-radius:5px; height:150px; object-fit:cover;">
+                    <p style="font-size:14px; margin-top:10px; height:40px; overflow:hidden;"><b>{row['nome']}</b></p>
+                    <p class="price-tag">R$ {row['preco']:.2f}</p>
+                    <p style="font-size:10px; color:#25D366;">⚡ Entrega Expressa</p>
+                </div>
+            """, unsafe_allow_html=True)
             
-            link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20').replace('\n', '%0A')}"
-            st.success("Dados validados! Clique no botão abaixo para enviar o pedido.")
-            st.markdown(f'[ENVIAR PARA O WHATSAPP]({link_zap})')
-        else:
-            st.error("⚠️ Por favor, preencha seu nome e endereço para entrega.")
+            if st.button(f"PEDIR AGORA", key=f"btn_{index}"):
+                seu_numero = "5561999999999" 
+                msg = f"Olá! Quero pedir: {row['nome']} (R$ {row['preco']:.2f})"
+                link_zap = f"https://wa.me/{seu_numero}?text={msg.replace(' ', '%20')}"
+                st.markdown(f'<meta http-equiv="refresh" content="0;URL={link_zap}">', unsafe_allow_html=True)
+
+except Exception as e:
+    st.error(f"Erro ao carregar dados: {e}")
