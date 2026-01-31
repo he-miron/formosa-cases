@@ -5,7 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="Formosa Cases Admin", layout="wide")
 
 # 2. Conexão com Google Sheets (Troque o ID abaixo pelo seu)
-SHEET_ID = "COLOQUE_AQUI_O_ID_DA_SUA_PLANILHA"
+SHEET_ID = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhJW43nfokHKiBwhu64dORzbzD8m8Haxy8tEbGRsysr8JG1Wq8s7qgRfHT5ZLLUBkAuHzUJFKODEDZ/pub?output=csv"
 SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
 
 @st.cache_data(ttl=60) # Atualiza os dados a cada 60 segundos
@@ -46,7 +46,7 @@ for index, row in df.iterrows():
         
         if st.button(f"Comprar {row['nome']}", key=f"btn_{index}"):
             # Lógica de checkout simplificada para WhatsApp
-            zap_link = f"https://wa.me/5561999999999?text=Quero%20o%20produto:%20{row['nome']}"
+            zap_link = f"https://wa.me/5561991967857?text=Quero%20o%20produto:%20{row['nome']}"
             st.success("Produto selecionado!")
             st.markdown(f"[CLIQUE AQUI PARA PEDIR NO WHATSAPP]({zap_link})")
 
