@@ -29,7 +29,6 @@ def load_data():
     return pd.read_csv(SHEET_URL)
 
 # --- LÓGICA DE NAVEGAÇÃO ---
-# Se o link tiver ?p=moto, abre logística. Senão, abre loja.
 query_params = st.query_params
 modo_logistica = query_params.get("p") == "moto"
 
@@ -39,11 +38,9 @@ if modo_logistica:
     
     try:
         df = load_data()
-        # Aqui simulamos que a aba de pedidos está na mesma planilha
         st.subheader("Pedidos Pendentes para Entrega")
         
-        # Exemplo de visualização para o motoboy
-        for i in range(3): # Simulação de 3 pedidos
+        for i in range(3): 
             st.markdown(f"""
                 <div class="log-card">
                     <p><b>📦 PEDIDO #102{i}</b></p>
@@ -53,7 +50,7 @@ if modo_logistica:
             """, unsafe_allow_html=True)
             col_gps, col_ok = st.columns(2)
             with col_gps:
-                st.link_button("🗺️ Abrir GPS", "https://www.google.com/maps/search/Rua+14+Centro+Formosa+GO")
+                st.link_button("🗺️ Abrir GPS", "https://www.google.com/maps/search/Formosa+GO")
             with col_ok:
                 if st.button("✅ Entregue", key=f"ent_{i}"):
                     st.toast("Entrega confirmada!")
@@ -64,8 +61,8 @@ else:
     # ---------------- QUEBRA DE PÁGINA: LOJA (CLIENTE) ----------------
     st.markdown('<div class="header"><h1>📱 FORMOSA CASES</h1><p>Entrega em até 2h em Formosa</p></div>', unsafe_allow_html=True)
 
-    # Sidebar de Checkout
-with st.sidebar:
+    # Sidebar de Checkout (INDENTAÇÃO CORRIGIDA)
+    with st.sidebar:
         st.header("🛒 Seu Pedido")
         if st.session_state.carrinho:
             st.write(f"**Item:** {st.session_state.carrinho['nome']}")
@@ -76,7 +73,6 @@ with st.sidebar:
             bairro = st.selectbox("Bairro", ["Centro", "Formosinha", "Setor Sul", "Parque Lago"])
             
             if nome and endereco:
-                # Gerar a mensagem e o link
                 zap_num = "5561991937857"
                 msg = f"*NOVO PEDIDO - FORMOSA CASES*\n\n" \
                       f"*Produto:* {st.session_state.carrinho['nome']}\n" \
@@ -86,17 +82,14 @@ with st.sidebar:
                       f"*Total:* R$ {st.session_state.carrinho['preco']:.2f}"
                 
                 link_whatsapp = f"https://wa.me/{zap_num}?text={msg.replace(' ', '%20').replace('\n', '%0A')}"
-                
-                # BOTÃO REAL DE LINK (Único que funciona 100% no celular)
                 st.link_button("✅ ENVIAR PEDIDO PARA WHATSAPP", link_whatsapp, use_container_width=True)
-                st.caption("Ao clicar, seu WhatsApp abrirá com o pedido pronto.")
             else:
                 st.warning("Preencha Nome e Endereço para liberar o botão.")
         else:
             st.write("Toque em um produto para comprar.")
 
-    # Vitrine de Produtos
-try:
+    # Vitrine de Produtos (INDENTAÇÃO CORRIGIDA)
+    try:
         df = load_data()
         cols = st.columns(2)
         for idx, row in df.iterrows():
@@ -112,7 +105,7 @@ try:
                     st.session_state.carrinho = {"nome": row['nome'], "preco": row['preco']}
                     st.rerun()
     except Exception as e:
-        st.error("Erro ao carregar vitrine.")
+        st.error(f"Erro ao carregar vitrine: {e}")
 
 st.markdown("---")
 st.caption("Formosa Cases Express - Sistema Integrado 2026")
