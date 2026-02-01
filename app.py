@@ -24,7 +24,7 @@ st.markdown("""
 # Usando o link CSV para máxima velocidade de busca
 SHEET_ID = "1yurzw28SK7rF6LPpbKYShICY0QgexeFbv0ShVbwUkjc"
 GID = "672132072"
-URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
+URL = f"https://docs.google.com/spreadsheets/d/e/2PACX-1vQV4Cj-QnWSfJLD5I5TwNfEW6F0Ti_YFPve0yyzqOAW9clUyLlRvohv9ZKm7kGD7x6xTVo0qKlYohKl/pub?output=csv"
 
 @st.cache_data(ttl=60) # Atualiza a cada 1 minuto
 def carregar_dados():
