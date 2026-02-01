@@ -1,111 +1,142 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from fpdf import FPDF
+import base64
 
-# 1. Configurações Iniciais
-st.set_page_config(page_title="Formosa Cases Express", layout="wide", page_icon="📱")
+# --- CONFIGURAÇÃO E ESTILO ---
+st.set_page_config(page_title="SGE PRO - Gestão Escolar", layout="wide", page_icon="🎓")
 
-# Inicializar memória de seleção
-if 'carrinho' not in st.session_state:
-    st.session_state.carrinho = None
-
-# 2. Estilo Visual (CSS Shopee Dark/Orange)
 st.markdown("""
     <style>
-    .stApp { background-color: #f0f2f5; }
-    .header { background-color: #ee4d2d; padding: 20px; color: white; text-align: center; border-radius: 0 0 20px 20px; margin-bottom: 20px; }
-    .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; margin-bottom: 20px; }
-    .price { color: #ee4d2d; font-size: 1.4rem; font-weight: bold; }
-    .stButton>button { background-color: #ee4d2d; color: white; width: 100%; border-radius: 8px; height: 45px; }
-    .log-card { background: #2d2d2d; color: #fff; padding: 15px; border-radius: 10px; border-left: 5px solid #ee4d2d; margin-bottom: 10px; }
+    .main { background-color: #f8fafc; }
+    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .stButton>button { border-radius: 5px; height: 3em; transition: 0.3s; }
+    .stButton>button:hover { transform: scale(1.02); background-color: #1e40af; }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. Conexão com Dados
-SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhJW43nfokHKiBwhu64dORzbzD8m8Haxy8tEbGRsysr8JG1Wq8s7qgRfHT5ZLLUBkAuHzUJFKODEDZ/pub?gid=0&single=true&output=csv"
-
-@st.cache_data(ttl=60)
-def load_data():
-    return pd.read_csv(SHEET_URL)
-
-# --- LÓGICA DE NAVEGAÇÃO ---
-query_params = st.query_params
-modo_logistica = query_params.get("p") == "moto"
-
-if modo_logistica:
-    # ---------------- QUEBRA DE PÁGINA: LOGÍSTICA ----------------
-    st.markdown('<div class="header"><h1>🚚 PAINEL ENTREGADOR</h1><p>Logística Formosa Cases</p></div>', unsafe_allow_html=True)
-    
+# --- CONEXÃO COM GOOGLE SHEETS ---
+def conectar_google():
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     try:
-        df = load_data()
-        st.subheader("Pedidos Pendentes para Entrega")
-        
-        for i in range(3): 
-            st.markdown(f"""
-                <div class="log-card">
-                    <p><b>📦 PEDIDO #102{i}</b></p>
-                    <p>📍 Rua 14, Centro - Próximo à Praça</p>
-                    <p>💰 Receber: R$ 59,90 (PIX)</p>
-                </div>
-            """, unsafe_allow_html=True)
-            col_gps, col_ok = st.columns(2)
-            with col_gps:
-                st.link_button("🗺️ Abrir GPS", "https://www.google.com/maps/search/Formosa+GO")
-            with col_ok:
-                if st.button("✅ Entregue", key=f"ent_{i}"):
-                    st.toast("Entrega confirmada!")
-    except:
-        st.error("Erro ao carregar mapa de entregas.")
-
-else:
-    # ---------------- QUEBRA DE PÁGINA: LOJA (CLIENTE) ----------------
-    st.markdown('<div class="header"><h1>📱 FORMOSA CASES</h1><p>Entrega em até 2h em Formosa</p></div>', unsafe_allow_html=True)
-
-    # Sidebar de Checkout (INDENTAÇÃO CORRIGIDA)
-    with st.sidebar:
-        st.header("🛒 Seu Pedido")
-        if st.session_state.carrinho:
-            st.write(f"**Item:** {st.session_state.carrinho['nome']}")
-            st.write(f"**Total:** R$ {st.session_state.carrinho['preco']:.2f}")
-            
-            nome = st.text_input("Nome Completo")
-            endereco = st.text_input("Rua e Número")
-            bairro = st.selectbox("Bairro", ["Centro", "Formosinha", "Setor Sul", "Parque Lago"])
-            
-            if nome and endereco:
-                zap_num = "5561991937857"
-                msg = f"*NOVO PEDIDO - FORMOSA CASES*\n\n" \
-                      f"*Produto:* {st.session_state.carrinho['nome']}\n" \
-                      f"*Cliente:* {nome}\n" \
-                      f"*Endereço:* {endereco}\n" \
-                      f"*Bairro:* {bairro}\n" \
-                      f"*Total:* R$ {st.session_state.carrinho['preco']:.2f}"
-                
-                link_whatsapp = f"https://wa.me/{zap_num}?text={msg.replace(' ', '%20').replace('\n', '%0A')}"
-                st.link_button("✅ ENVIAR PEDIDO PARA WHATSAPP", link_whatsapp, use_container_width=True)
-            else:
-                st.warning("Preencha Nome e Endereço para liberar o botão.")
+        if "gcp_service_account" in st.secrets:
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
         else:
-            st.write("Toque em um produto para comprar.")
-
-    # Vitrine de Produtos (INDENTAÇÃO CORRIGIDA)
-    try:
-        df = load_data()
-        cols = st.columns(2)
-        for idx, row in df.iterrows():
-            with cols[idx % 2]:
-                st.markdown(f"""
-                    <div class="card">
-                        <img src="{row['img']}" style="width:100%; border-radius:10px; height:150px; object-fit:cover;">
-                        <p style="margin:10px 0 5px 0;"><b>{row['nome']}</b></p>
-                        <p class="price">R$ {row['preco']:.2f}</p>
-                    </div>
-                """, unsafe_allow_html=True)
-                if st.button("Eu Quero", key=f"venda_{idx}"):
-                    st.session_state.carrinho = {"nome": row['nome'], "preco": row['preco']}
-                    st.rerun()
+            creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
+        client = gspread.authorize(creds)
+        return client.open_by_key("1yurzw28SK7rF6LPpbKYShICY0QgexeFbv0ShVbwUkjc")
     except Exception as e:
-        st.error(f"Erro ao carregar vitrine: {e}")
+        st.error(f"Erro de Conexão: {e}")
+        return None
 
-st.markdown("---")
-st.caption("Formosa Cases Express - Sistema Integrado 2026")
+# --- GERADOR DE BOLETIM PDF ---
+def gerar_pdf(aluno_data):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(200, 10, "BOLETIM ESCOLAR OFICIAL", ln=True, align='C')
+    pdf.ln(10)
+    pdf.set_font("Arial", '', 12)
+    pdf.cell(200, 10, f"Aluno: {aluno_data['nome']}", ln=True)
+    pdf.cell(200, 10, f"Turma: {aluno_data['turma']}", ln=True)
+    pdf.ln(5)
+    pdf.cell(100, 10, f"Frequência: {aluno_data['frequencia']}%", border=1)
+    pdf.cell(100, 10, f"Média Geral: {aluno_data['notas']}", border=1, ln=True)
+    pdf.ln(10)
+    pdf.multi_cell(0, 10, f"Observações: {aluno_data['observacoes']}")
+    return pdf.output(dest='S').encode('latin-1')
+
+# --- AUTENTICAÇÃO ---
+if 'auth' not in st.session_state:
+    st.session_state.auth = False
+
+if not st.session_state.auth:
+    st.title("🔐 SGE PRO - Login")
+    u = st.text_input("Usuário").strip().lower()
+    p = st.text_input("Senha", type="password")
+    if st.button("Acessar Painel"):
+        db = conectar_google()
+        if db:
+            ws = db.worksheet("servidores")
+            servidores = pd.DataFrame(ws.get_all_records())
+            valid = servidores[(servidores['usuario'].astype(str) == u) & (servidores['senha'].astype(str) == p)]
+            if not valid.empty:
+                st.session_state.auth = True
+                st.session_state.user = valid.iloc[0].to_dict()
+                st.rerun()
+            else: st.error("Acesso Negado.")
+else:
+    db = conectar_google()
+    st.sidebar.title("🎓 Gestão Escolar")
+    st.sidebar.write(f"Olá, **{st.session_state.user['nome']}**")
+    
+    aba = st.sidebar.radio("Menu", ["📊 Dashboard Geral", "📝 Lançamentos", "📋 Chamada", "📄 Boletins"])
+
+    # --- ABA DASHBOARD ---
+    if aba == "📊 Dashboard Geral":
+        st.header("Visão Geral da Escola")
+        df_alunos = pd.DataFrame(db.worksheet("alunos").get_all_records())
+        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Total de Alunos", len(df_alunos))
+        c2.metric("Média da Escola", round(pd.to_numeric(df_alunos['notas']).mean(), 1))
+        c3.metric("Frequência Média", f"{round(pd.to_numeric(df_alunos['frequencia']).mean())}%")
+        
+        st.subheader("Lista de Alunos")
+        st.dataframe(df_alunos, use_container_width=True)
+
+    # --- ABA LANÇAMENTOS ---
+    elif aba == "📝 Lançamentos":
+        st.header("Lançamento de Notas e Observações")
+        ws_alunos = db.worksheet("alunos")
+        df_alunos = pd.DataFrame(ws_alunos.get_all_records())
+        
+        aluno_sel = st.selectbox("Selecione o Aluno", df_alunos['nome'].tolist())
+        dados = df_alunos[df_alunos['nome'] == aluno_sel].iloc[0]
+        linha = df_alunos[df_alunos['nome'] == aluno_sel].index[0] + 2
+        
+        with st.form("edit_form"):
+            nota = st.number_input("Nota", value=float(dados['notas']), min_value=0.0, max_value=10.0)
+            obs = st.text_area("Observações Pedagógicas", value=str(dados['observacoes']))
+            if st.form_submit_button("Salvar no Sistema"):
+                ws_alunos.update_cell(linha, 5, nota) # Coluna E
+                ws_alunos.update_cell(linha, 6, obs)  # Coluna F
+                st.success("Dados salvos com sucesso!")
+
+    # --- ABA CHAMADA ---
+    elif aba == "📋 Chamada":
+        st.header("Controle de Frequência Diária")
+        ws_alunos = db.worksheet("alunos")
+        df_alunos = pd.DataFrame(ws_alunos.get_all_records())
+        
+        st.write("Marque 'Presente' para os alunos da turma selecionada:")
+        turma_sel = st.selectbox("Turma", df_alunos['turma'].unique())
+        alunos_turma = df_alunos[df_alunos['turma'] == turma_sel]
+        
+        for i, row in alunos_turma.iterrows():
+            col_a, col_b = st.columns([3, 1])
+            col_a.write(row['nome'])
+            if col_b.button("Presença ✅", key=f"pres_{i}"):
+                nova_f = min(int(row['frequencia']) + 1, 100)
+                ws_alunos.update_cell(i + 2, 4, nova_f) # Coluna D
+                st.toast(f"Presença de {row['nome']} registrada!")
+
+    # --- ABA BOLETINS ---
+    elif aba == "📄 Boletins":
+        st.header("Emissão de Documentos")
+        df_alunos = pd.DataFrame(db.worksheet("alunos").get_all_records())
+        aluno_doc = st.selectbox("Gerar boletim para:", df_alunos['nome'].tolist())
+        aluno_final = df_alunos[df_alunos['nome'] == aluno_doc].iloc[0]
+        
+        if st.button("Gerar PDF do Boletim"):
+            pdf_bytes = gerar_pdf(aluno_final)
+            st.download_button(label="📥 Baixar Boletim PDF", 
+                             data=pdf_bytes, 
+                             file_name=f"Boletim_{aluno_doc}.pdf",
+                             mime="application/pdf")
+
+    if st.sidebar.button("Sair"):
+        st.session_state.auth = False
+        st.rerun()
