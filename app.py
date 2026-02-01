@@ -1,142 +1,77 @@
 import streamlit as st
 import pandas as pd
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-from fpdf import FPDF
-import base64
 
-# --- CONFIGURAÇÃO E ESTILO ---
-st.set_page_config(page_title="SGE PRO - Gestão Escolar", layout="wide", page_icon="🎓")
+# --- CONFIGURAÇÃO VISUAL ---
+st.set_page_config(page_title="Busca Aluno - FSA", page_icon="🔍")
 
 st.markdown("""
     <style>
-    .main { background-color: #f8fafc; }
-    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .stButton>button { border-radius: 5px; height: 3em; transition: 0.3s; }
-    .stButton>button:hover { transform: scale(1.02); background-color: #1e40af; }
+    .resultado {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 15px;
+        border-left: 10px solid #1e3a8a;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+        color: #1e3a8a;
+        margin-top: 20px;
+    }
+    .label { font-weight: bold; color: #555; font-size: 0.9em; }
+    .valor { font-size: 1.4em; font-weight: bold; margin-bottom: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- CONEXÃO COM GOOGLE SHEETS ---
-def conectar_google():
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    try:
-        if "gcp_service_account" in st.secrets:
-            creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
-        else:
-            creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
-        client = gspread.authorize(creds)
-        return client.open_by_key("1yurzw28SK7rF6LPpbKYShICY0QgexeFbv0ShVbwUkjc")
-    except Exception as e:
-        st.error(f"Erro de Conexão: {e}")
-        return None
+# --- CARREGAMENTO DE DADOS ---
+# Usando o link CSV para máxima velocidade de busca
+SHEET_ID = "1yurzw28SK7rF6LPpbKYShICY0QgexeFbv0ShVbwUkjc"
+GID = "672132072"
+URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}"
 
-# --- GERADOR DE BOLETIM PDF ---
-def gerar_pdf(aluno_data):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", 'B', 16)
-    pdf.cell(200, 10, "BOLETIM ESCOLAR OFICIAL", ln=True, align='C')
-    pdf.ln(10)
-    pdf.set_font("Arial", '', 12)
-    pdf.cell(200, 10, f"Aluno: {aluno_data['nome']}", ln=True)
-    pdf.cell(200, 10, f"Turma: {aluno_data['turma']}", ln=True)
-    pdf.ln(5)
-    pdf.cell(100, 10, f"Frequência: {aluno_data['frequencia']}%", border=1)
-    pdf.cell(100, 10, f"Média Geral: {aluno_data['notas']}", border=1, ln=True)
-    pdf.ln(10)
-    pdf.multi_cell(0, 10, f"Observações: {aluno_data['observacoes']}")
-    return pdf.output(dest='S').encode('latin-1')
+@st.cache_data(ttl=60) # Atualiza a cada 1 minuto
+def carregar_dados():
+    df = pd.read_csv(URL)
+    # Padroniza nomes das colunas (tira espaços e deixa minúsculo)
+    df.columns = [c.strip().lower() for c in df.columns]
+    return df
 
-# --- AUTENTICAÇÃO ---
-if 'auth' not in st.session_state:
-    st.session_state.auth = False
+# --- INTERFACE ---
+st.title("🔍 Conferência de Alunos")
+st.write("Digite o nome abaixo para consultar os dados imediatamente.")
 
-if not st.session_state.auth:
-    st.title("🔐 SGE PRO - Login")
-    u = st.text_input("Usuário").strip().lower()
-    p = st.text_input("Senha", type="password")
-    if st.button("Acessar Painel"):
-        db = conectar_google()
-        if db:
-            ws = db.worksheet("servidores")
-            servidores = pd.DataFrame(ws.get_all_records())
-            valid = servidores[(servidores['usuario'].astype(str) == u) & (servidores['senha'].astype(str) == p)]
-            if not valid.empty:
-                st.session_state.auth = True
-                st.session_state.user = valid.iloc[0].to_dict()
-                st.rerun()
-            else: st.error("Acesso Negado.")
-else:
-    db = conectar_google()
-    st.sidebar.title("🎓 Gestão Escolar")
-    st.sidebar.write(f"Olá, **{st.session_state.user['nome']}**")
+try:
+    df = carregar_dados()
     
-    aba = st.sidebar.radio("Menu", ["📊 Dashboard Geral", "📝 Lançamentos", "📋 Chamada", "📄 Boletins"])
+    # BARRA DE PESQUISA (A LUPA)
+    busca = st.text_input("Pesquisar Nome do Aluno", placeholder="Ex: João Silva...").strip().lower()
 
-    # --- ABA DASHBOARD ---
-    if aba == "📊 Dashboard Geral":
-        st.header("Visão Geral da Escola")
-        df_alunos = pd.DataFrame(db.worksheet("alunos").get_all_records())
-        
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Total de Alunos", len(df_alunos))
-        c2.metric("Média da Escola", round(pd.to_numeric(df_alunos['notas']).mean(), 1))
-        c3.metric("Frequência Média", f"{round(pd.to_numeric(df_alunos['frequencia']).mean())}%")
-        
-        st.subheader("Lista de Alunos")
-        st.dataframe(df_alunos, use_container_width=True)
+    if busca:
+        # Filtra o DataFrame onde o nome contém o texto digitado
+        resultado = df[df['nome'].astype(str).str.lower().str.contains(busca)]
 
-    # --- ABA LANÇAMENTOS ---
-    elif aba == "📝 Lançamentos":
-        st.header("Lançamento de Notas e Observações")
-        ws_alunos = db.worksheet("alunos")
-        df_alunos = pd.DataFrame(ws_alunos.get_all_records())
-        
-        aluno_sel = st.selectbox("Selecione o Aluno", df_alunos['nome'].tolist())
-        dados = df_alunos[df_alunos['nome'] == aluno_sel].iloc[0]
-        linha = df_alunos[df_alunos['nome'] == aluno_sel].index[0] + 2
-        
-        with st.form("edit_form"):
-            nota = st.number_input("Nota", value=float(dados['notas']), min_value=0.0, max_value=10.0)
-            obs = st.text_area("Observações Pedagógicas", value=str(dados['observacoes']))
-            if st.form_submit_button("Salvar no Sistema"):
-                ws_alunos.update_cell(linha, 5, nota) # Coluna E
-                ws_alunos.update_cell(linha, 6, obs)  # Coluna F
-                st.success("Dados salvos com sucesso!")
+        if not resultado.empty:
+            for _, aluno in resultado.iterrows():
+                # Exibição em "Card" elegante
+                st.markdown(f"""
+                    <div class="resultado">
+                        <div class="label">NOME COMPLETO:</div>
+                        <div class="valor">{aluno['nome'].upper()}</div>
+                        
+                        <div style="display: flex; justify-content: space-between;">
+                            <div>
+                                <div class="label">SÉRIE / TURMA:</div>
+                                <div class="valor">{aluno.get('turma', aluno.get('serie', 'Não inf.'))}</div>
+                            </div>
+                            <div>
+                                <div class="label">SITUAÇÃO:</div>
+                                <div class="valor" style="color: green;">ATIVO</div>
+                            </div>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.warning("Nenhum aluno encontrado com esse nome.")
+    else:
+        st.info("Aguardando digitação para busca...")
 
-    # --- ABA CHAMADA ---
-    elif aba == "📋 Chamada":
-        st.header("Controle de Frequência Diária")
-        ws_alunos = db.worksheet("alunos")
-        df_alunos = pd.DataFrame(ws_alunos.get_all_records())
-        
-        st.write("Marque 'Presente' para os alunos da turma selecionada:")
-        turma_sel = st.selectbox("Turma", df_alunos['turma'].unique())
-        alunos_turma = df_alunos[df_alunos['turma'] == turma_sel]
-        
-        for i, row in alunos_turma.iterrows():
-            col_a, col_b = st.columns([3, 1])
-            col_a.write(row['nome'])
-            if col_b.button("Presença ✅", key=f"pres_{i}"):
-                nova_f = min(int(row['frequencia']) + 1, 100)
-                ws_alunos.update_cell(i + 2, 4, nova_f) # Coluna D
-                st.toast(f"Presença de {row['nome']} registrada!")
-
-    # --- ABA BOLETINS ---
-    elif aba == "📄 Boletins":
-        st.header("Emissão de Documentos")
-        df_alunos = pd.DataFrame(db.worksheet("alunos").get_all_records())
-        aluno_doc = st.selectbox("Gerar boletim para:", df_alunos['nome'].tolist())
-        aluno_final = df_alunos[df_alunos['nome'] == aluno_doc].iloc[0]
-        
-        if st.button("Gerar PDF do Boletim"):
-            pdf_bytes = gerar_pdf(aluno_final)
-            st.download_button(label="📥 Baixar Boletim PDF", 
-                             data=pdf_bytes, 
-                             file_name=f"Boletim_{aluno_doc}.pdf",
-                             mime="application/pdf")
-
-    if st.sidebar.button("Sair"):
-        st.session_state.auth = False
-        st.rerun()
+except Exception as e:
+    st.error("Erro ao conectar com a planilha. Verifique se ela está publicada na web.")
+    st.info("Para publicar: Arquivo > Compartilhar > Publicar na Web (formato CSV).")
