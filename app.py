@@ -6,7 +6,7 @@ from io import BytesIO
 import base64
 
 # Configuração da Página
-st.set_page_config(page_title="Gerador de Etiquetas SPX", page_icon="🏷️")
+st.set_page_config(page_title="Gerador de Etiquetas MAD", page_icon="🏷️")
 
 def gerar_imagem_barcode(dados):
     COD = barcode.get_barcode_class('code128')
@@ -25,7 +25,7 @@ def gerar_imagem_qrcode(dados):
     return buffer
 
 # Interface
-st.title("🏷️ Criador de Etiquetas Estilo Shopee")
+st.title("🏷️ Criador de Etiquetas MAD")
 st.write("Preencha os dados abaixo para gerar a etiqueta de envio.")
 
 with st.container():
@@ -39,7 +39,7 @@ with st.container():
 
     endereco = st.text_area("Endereço Completo", "Rua 15, Casa 200, Setor Central, Formosa-GO")
 
-if st.button("Gerar Etiqueta Profissional"):
+if st.button("Gerar Etiqueta"):
     # Geração dos códigos
     img_bar = gerar_imagem_barcode(rastreio)
     img_qr = gerar_imagem_qrcode(f"Pedido:{id_pedido}|Cliente:{cliente}")
