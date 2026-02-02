@@ -16,7 +16,6 @@ def gerar_imagem_barcode(dados):
     return buffer
 
 def gerar_imagem_qrcode(dados):
-    # Aumentamos o 'version' para comportar mais texto se necessário
     qr = qrcode.QRCode(version=None, box_size=10, border=2, error_correction=qrcode.constants.ERROR_CORRECT_L)
     qr.add_data(dados)
     qr.make(fit=True)
@@ -39,10 +38,12 @@ with st.container():
         cep = st.text_input("CEP", "73800-000")
 
     endereco = st.text_area("Endereço Completo", "Rua 15, Casa 200, Setor Central, Formosa-GO")
+    # NOVO CAMPO: Item Declarado
+    item_declarado = st.text_input("Conteúdo / Item Declarado", "1x Capinha iPhone 13 Pro Max")
 
 if st.button("Gerar Etiqueta"):
-    # --- NOVIDADE AQUI: String completa para o QR Code ---
-    dados_qr = f"PEDIDO: {id_pedido}\nCLIENTE: {cliente}\nENDERECO: {endereco}\nCEP: {cep}"
+    # Dados combinados para o QR Code (Agora inclui o Item)
+    dados_qr = f"PEDIDO: {id_pedido}\nCLIENTE: {cliente}\nENDERECO: {endereco}\nCEP: {cep}\nCONTEUDO: {item_declarado}"
     
     # Geração dos códigos
     img_bar = gerar_imagem_barcode(rastreio)
@@ -53,7 +54,7 @@ if st.button("Gerar Etiqueta"):
     <div style="background-color: white; padding: 20px; border: 2px solid #000; color: black; font-family: 'Courier New', Courier, monospace; width: 380px; margin: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <b style="font-size: 20px;">FSA MARKET</b>
-            <span style="border: 1px solid black; padding: 2px 5px;">PADRÃO VIP</span>
+            <span style="border: 1px solid black; padding: 2px 5px;">PADRÃO SPX</span>
         </div>
         <hr style="border: 1px solid black;">
         <div style="text-align: center;">
@@ -64,18 +65,16 @@ if st.button("Gerar Etiqueta"):
         <p style="margin: 0; font-size: 16px;">{cliente}</p>
         <p style="margin: 0; font-size: 13px;">{endereco}</p>
         <p style="margin: 0; font-size: 14px;"><b>CEP: {cep}</b></p>
+        
+        <div style="border: 1px solid #ccc; margin-top: 10px; padding: 5px;">
+            <p style="margin: 0; font-size: 11px;"><b>CONTEÚDO DECLARADO:</b></p>
+            <p style="margin: 0; font-size: 12px;">{item_declarado}</p>
+        </div>
+
         <hr style="border: 0.5px dashed black;">
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
             <img src="data:image/png;base64,{base64.b64encode(img_bar.getvalue()).decode()}" width="300">
             <p style="margin: 0; font-size: 12px;">{rastreio}</p>
-            <img src="data:image/png;base64,{base64.b64encode(img_qr.getvalue()).decode()}" width="120">
-            <p style="font-size: 8px; margin-top: -5px;">Escaneie para detalhes do cliente</p>
+            <img src="data:image/png;base64,{base64.b64encode(img_qr.getvalue()).decode()}" width="110">
         </div>
-        <br>
-        <div style="border-top: 1px solid black; padding-top: 5px; font-size: 10px; text-align: center;">
-            DATA: 02/02/2026 | ROTA: FSA-CITY
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.success("Etiqueta gerada com sucesso!")
+        <br
