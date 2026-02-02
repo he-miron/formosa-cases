@@ -32,9 +32,9 @@ with st.container():
     col1, col2 = st.columns(2)
     with col1:
         id_pedido = st.text_input("ID do Pedido", "10258")
-        rastreio = st.text_input("Código de Rastreio", "SPX789456123")
+        rastreio = st.text_input("Código de Rastreio", "MAD789456123")
     with col2:
-        cliente = st.text_input("Nome do Cliente", "João da Silva")
+        cliente = st.text_input("Nome do Cliente", "MIRON DE AQUINO DIAS")
         cep = st.text_input("CEP", "73800-000")
 
     endereco = st.text_area("Endereço Completo", "Rua 15, Casa 200, Setor Central, Formosa-GO")
@@ -48,7 +48,7 @@ if st.button("Gerar Etiqueta Profissional"):
     st.markdown(f"""
     <div style="background-color: white; padding: 20px; border: 2px solid #000; color: black; font-family: 'Courier New', Courier, monospace; width: 380px; margin: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <b style="font-size: 20px;">FORMOSA CASES</b>
+            <b style="font-size: 20px;">FSA MARKET</b>
             <span style="border: 1px solid black; padding: 2px 5px;">PADRÃO SPX</span>
         </div>
         <hr style="border: 1px solid black;">
