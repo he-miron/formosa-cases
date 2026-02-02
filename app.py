@@ -53,7 +53,7 @@ if st.button("Gerar Etiqueta"):
     <div style="background-color: white; padding: 20px; border: 2px solid #000; color: black; font-family: 'Courier New', Courier, monospace; width: 380px; margin: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <b style="font-size: 20px;">FSA MARKET</b>
-            <span style="border: 1px solid black; padding: 2px 5px;">PADRÃO SPX</span>
+            <span style="border: 1px solid black; padding: 2px 5px;">PADRÃO VIP</span>
         </div>
         <hr style="border: 1px solid black;">
         <div style="text-align: center;">
