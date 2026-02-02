@@ -10,7 +10,7 @@ from datetime import datetime
 st.set_page_config(page_title="Gerador MAD", layout="centered")
 
 def gerar_imagem_barcode(dados):
-    COD = barcode.get_barcode_class('code128')
+    COD = barcode.get_barcode_class('code300')
     buffer = BytesIO()
     codigo = COD(dados, writer=ImageWriter())
     codigo.write(buffer)
