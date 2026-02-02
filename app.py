@@ -1,77 +1,76 @@
 import streamlit as st
-import pandas as pd
+import barcode
+from barcode.writer import ImageWriter
+import qrcode
+from io import BytesIO
+import base64
 
-# --- CONFIGURAÇÃO VISUAL ---
-st.set_page_config(page_title="Busca Aluno - FSA", page_icon="🔍")
+# Configuração da Página
+st.set_page_config(page_title="Gerador de Etiquetas SPX", page_icon="🏷️")
 
-st.markdown("""
-    <style>
-    .resultado {
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 15px;
-        border-left: 10px solid #1e3a8a;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-        color: #1e3a8a;
-        margin-top: 20px;
-    }
-    .label { font-weight: bold; color: #555; font-size: 0.9em; }
-    .valor { font-size: 1.4em; font-weight: bold; margin-bottom: 10px; }
-    </style>
+def gerar_imagem_barcode(dados):
+    COD = barcode.get_barcode_class('code128')
+    buffer = BytesIO()
+    codigo = COD(dados, writer=ImageWriter())
+    codigo.write(buffer)
+    return buffer
+
+def gerar_imagem_qrcode(dados):
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(dados)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    return buffer
+
+# Interface
+st.title("🏷️ Criador de Etiquetas Estilo Shopee")
+st.write("Preencha os dados abaixo para gerar a etiqueta de envio.")
+
+with st.container():
+    col1, col2 = st.columns(2)
+    with col1:
+        id_pedido = st.text_input("ID do Pedido", "10258")
+        rastreio = st.text_input("Código de Rastreio", "SPX789456123")
+    with col2:
+        cliente = st.text_input("Nome do Cliente", "João da Silva")
+        cep = st.text_input("CEP", "73800-000")
+
+    endereco = st.text_area("Endereço Completo", "Rua 15, Casa 200, Setor Central, Formosa-GO")
+
+if st.button("Gerar Etiqueta Profissional"):
+    # Geração dos códigos
+    img_bar = gerar_imagem_barcode(rastreio)
+    img_qr = gerar_imagem_qrcode(f"Pedido:{id_pedido}|Cliente:{cliente}")
+
+    # Layout da Etiqueta em HTML/CSS (Simulando o padrão de transportadora)
+    st.markdown(f"""
+    <div style="background-color: white; padding: 20px; border: 2px solid #000; color: black; font-family: 'Courier New', Courier, monospace; width: 380px; margin: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <b style="font-size: 20px;">FORMOSA CASES</b>
+            <span style="border: 1px solid black; padding: 2px 5px;">PADRÃO SPX</span>
+        </div>
+        <hr style="border: 1px solid black;">
+        <div style="text-align: center;">
+            <p style="margin: 0;">PEDIDO: {id_pedido}</p>
+        </div>
+        <br>
+        <p style="margin: 0; font-size: 14px;"><b>DESTINATÁRIO:</b></p>
+        <p style="margin: 0; font-size: 16px;">{cliente}</p>
+        <p style="margin: 0; font-size: 13px;">{endereco}</p>
+        <p style="margin: 0; font-size: 14px;"><b>CEP: {cep}</b></p>
+        <hr style="border: 0.5px dashed black;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <img src="data:image/png;base64,{base64.b64encode(img_bar.getvalue()).decode()}" width="300">
+            <p style="margin: 0; font-size: 12px;">{rastreio}</p>
+            <img src="data:image/png;base64,{base64.b64encode(img_qr.getvalue()).decode()}" width="100">
+        </div>
+        <br>
+        <div style="border-top: 1px solid black; padding-top: 5px; font-size: 10px; text-align: center;">
+            DATA: {st.session_state.get('data', '02/02/2026')} | ROTA: CENTRO-FORMOSA
+        </div>
+    </div>
     """, unsafe_allow_html=True)
-
-# --- CARREGAMENTO DE DADOS ---
-# Usando o link CSV para máxima velocidade de busca
-SHEET_ID = "1yurzw28SK7rF6LPpbKYShICY0QgexeFbv0ShVbwUkjc"
-GID = "672132072"
-URL = f"https://docs.google.com/spreadsheets/d/e/2PACX-1vQV4Cj-QnWSfJLD5I5TwNfEW6F0Ti_YFPve0yyzqOAW9clUyLlRvohv9ZKm7kGD7x6xTVo0qKlYohKl/pub?output=csv"
-
-@st.cache_data(ttl=60) # Atualiza a cada 1 minuto
-def carregar_dados():
-    df = pd.read_csv(URL)
-    # Padroniza nomes das colunas (tira espaços e deixa minúsculo)
-    df.columns = [c.strip().lower() for c in df.columns]
-    return df
-
-# --- INTERFACE ---
-st.title("🔍 Conferência de Alunos")
-st.write("Digite o nome abaixo para consultar os dados imediatamente.")
-
-try:
-    df = carregar_dados()
     
-    # BARRA DE PESQUISA (A LUPA)
-    busca = st.text_input("Pesquisar Nome do Aluno", placeholder="Ex: João Silva...").strip().lower()
-
-    if busca:
-        # Filtra o DataFrame onde o nome contém o texto digitado
-        resultado = df[df['nome'].astype(str).str.lower().str.contains(busca)]
-
-        if not resultado.empty:
-            for _, aluno in resultado.iterrows():
-                # Exibição em "Card" elegante
-                st.markdown(f"""
-                    <div class="resultado">
-                        <div class="label">NOME COMPLETO:</div>
-                        <div class="valor">{aluno['nome'].upper()}</div>
-                        
-                        <div style="display: flex; justify-content: space-between;">
-                            <div>
-                                <div class="label">SÉRIE / TURMA:</div>
-                                <div class="valor">{aluno.get('turma', aluno.get('serie', 'Não inf.'))}</div>
-                            </div>
-                            <div>
-                                <div class="label">SITUAÇÃO:</div>
-                                <div class="valor" style="color: green;">ATIVO</div>
-                            </div>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.warning("Nenhum aluno encontrado com esse nome.")
-    else:
-        st.info("Aguardando digitação para busca...")
-
-except Exception as e:
-    st.error("Erro ao conectar com a planilha. Verifique se ela está publicada na web.")
-    st.info("Para publicar: Arquivo > Compartilhar > Publicar na Web (formato CSV).")
+    st.success("Etiqueta gerada! Você pode tirar um print ou usar a função de imprimir do navegador.")
