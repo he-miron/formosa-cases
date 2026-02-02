@@ -6,13 +6,12 @@ from io import BytesIO
 import base64
 from datetime import datetime
 
-# 1. Configurações Iniciais
+# 1. Configurações
 st.set_page_config(page_title="Gerador MAD", layout="centered")
 
 def gerar_imagem_barcode(dados):
     COD = barcode.get_barcode_class('code128')
     buffer = BytesIO()
-    # Usando writer com fundo branco e sem texto embaixo (o texto colocamos via HTML)
     codigo = COD(dados, writer=ImageWriter())
     codigo.write(buffer)
     return buffer
@@ -26,10 +25,10 @@ def gerar_imagem_qrcode(dados):
     img.save(buffer, format="PNG")
     return buffer
 
-# 2. Interface de Entrada
+# 2. Interface
 st.title("🏷️ Criador de Etiquetas MAD")
 
-with st.expander("📝 Dados do Pedido", expanded=True):
+with st.form("dados_etiqueta"):
     col1, col2 = st.columns(2)
     with col1:
         id_pedido = st.text_input("ID do Pedido", "10258")
@@ -40,65 +39,48 @@ with st.expander("📝 Dados do Pedido", expanded=True):
     
     endereco = st.text_area("Endereço Completo", "Rua 15, Casa 200, Setor Central, Formosa-GO")
     item_declarado = st.text_input("Conteúdo Declarado", "1x Capinha iPhone 13 Pro Max")
+    gerar = st.form_submit_button("GERAR ETIQUETA")
 
-# 3. Lógica de Geração
-if st.button("GERAR ETIQUETA AGORA", use_container_width=True):
-    # Preparar Dados
+if gerar:
+    # Preparar Dados e Imagens
     dados_qr = f"PEDIDO: {id_pedido}\nCLIENTE: {cliente}\nEND: {endereco}\nCEP: {cep}\nITEM: {item_declarado}"
-    
-    # Gerar Imagens em Memória
     img_bar = gerar_imagem_barcode(rastreio)
     img_qr = gerar_imagem_qrcode(dados_qr)
     
-    # Converter para Base64
     bar_b64 = base64.b64encode(img_bar.getvalue()).decode()
     qr_b64 = base64.b64encode(img_qr.getvalue()).decode()
     hoje = datetime.now().strftime("%d/%m/%Y")
 
-    # Montagem do HTML (Design Limpo para Impressão)
-    etiqueta_html = f"""
-    <div style="background-color: white; padding: 15px; border: 3px solid black; color: black; font-family: 'Arial', sans-serif; width: 360px; margin: auto; line-height: 1.2;">
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid black; padding-bottom: 5px;">
-            <span style="font-size: 18px; font-weight: bold;">FSA MARKET</span>
-            <span style="background: black; color: white; padding: 3px 10px; font-size: 12px; font-weight: bold;">MAD LOG</span>
+    # HTML DA ETIQUETA (Formatado para não quebrar)
+    html_content = f"""
+    <div style="background-color: white; padding: 10px; border: 2px solid black; color: black; font-family: sans-serif; width: 320px; height: auto;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 2px solid black;">
+            <b style="font-size: 16px;">FSA MARKET</b>
+            <span style="background: black; color: white; padding: 0 5px; font-size: 12px;">MAD LOG</span>
         </div>
-
-        <div style="text-align: center; font-size: 22px; font-weight: bold; margin: 10px 0;">
-            PEDIDO: {id_pedido}
-        </div>
-
-        <div style="font-size: 13px; margin-bottom: 10px;">
-            <b style="font-size: 11px; text-transform: uppercase;">Destinatário:</b><br>
-            <span style="font-size: 16px; font-weight: bold;">{cliente}</span><br>
+        <div style="text-align: center; font-size: 20px; font-weight: bold; margin: 10px 0;">PEDIDO: {id_pedido}</div>
+        <div style="font-size: 12px;">
+            <b>DESTINATÁRIO:</b><br>
+            <span style="font-size: 14px; font-weight: bold;">{cliente}</span><br>
             {endereco}<br>
             <b>CEP: {cep}</b>
         </div>
-
-        <div style="border: 1px solid black; padding: 5px; font-size: 11px; background: #f2f2f2; margin-bottom: 10px;">
-            <b>CONTEÚDO DECLARADO:</b><br>
-            {item_declarado}
+        <div style="border: 1px solid black; padding: 5px; font-size: 11px; margin: 10px 0; background: #f0f0f0;">
+            <b>CONTEÚDO:</b> {item_declarado}
         </div>
-
         <div style="text-align: center;">
-            <img src="data:image/png;base64,{bar_b64}" style="width: 100%; max-height: 60px;">
-            <p style="font-size: 13px; font-weight: bold; margin: 2px 0;">{rastreio}</p>
-            
-            <div style="margin-top: 10px;">
-                <img src="data:image/png;base64,{qr_b64}" width="100">
-                <p style="font-size: 9px; color: #555; margin: 0;">SCAN PARA CONFERÊNCIA</p>
-            </div>
+            <img src="data:image/png;base64,{bar_b64}" width="280" height="60"><br>
+            <b style="font-size: 12px;">{rastreio}</b><br><br>
+            <img src="data:image/png;base64,{qr_b64}" width="100"><br>
+            <span style="font-size: 9px;">CONFERÊNCIA DE SEGURANÇA</span>
         </div>
-
-        <div style="border-top: 1px solid black; margin-top: 10px; padding-top: 5px; font-size: 9px; text-align: center; color: #444;">
-            EMISSÃO: {hoje} | ORIGEM: FORMOSA-GO | SPX EXPRESS
+        <div style="text-align: center; font-size: 9px; border-top: 1px solid black; margin-top: 10px;">
+            {hoje} | ORIGEM: FORMOSA-GO
         </div>
     </div>
     """
 
-    # EXIBIÇÃO DA ETIQUETA
-    st.divider()
-    st.markdown(etiqueta_html, unsafe_allow_html=True)
-    st.divider()
+    # O SEGREDO: Usar um componente de HTML fixo (Iframe)
+    st.components.v1.html(html_content, height=550, scrolling=True)
     
-    st.info("💡 Dica: Para imprimir, clique com o botão direito na etiqueta e selecione 'Imprimir' ou tire um print da tela.")
+    st.success("Etiqueta pronta para impressão!")
