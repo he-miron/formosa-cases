@@ -6,13 +6,13 @@ from io import BytesIO
 import base64
 from datetime import datetime
 
-# 1. Configurações Iniciais (DEVE VIR PRIMEIRO)
-st.set_page_config(page_title="Gerador de Etiquetas MAD", page_icon="🏷️")
+# 1. Configurações Iniciais
+st.set_page_config(page_title="Gerador MAD", layout="centered")
 
-# 2. Definição de Funções (O Python precisa conhecê-las antes de usá-las)
 def gerar_imagem_barcode(dados):
     COD = barcode.get_barcode_class('code128')
     buffer = BytesIO()
+    # Usando writer com fundo branco e sem texto embaixo (o texto colocamos via HTML)
     codigo = COD(dados, writer=ImageWriter())
     codigo.write(buffer)
     return buffer
@@ -26,11 +26,10 @@ def gerar_imagem_qrcode(dados):
     img.save(buffer, format="PNG")
     return buffer
 
-# 3. Interface de Usuário
+# 2. Interface de Entrada
 st.title("🏷️ Criador de Etiquetas MAD")
-st.write("Preencha os dados abaixo para gerar a etiqueta de envio.")
 
-with st.container():
+with st.expander("📝 Dados do Pedido", expanded=True):
     col1, col2 = st.columns(2)
     with col1:
         id_pedido = st.text_input("ID do Pedido", "10258")
@@ -38,56 +37,68 @@ with st.container():
     with col2:
         cliente = st.text_input("Nome do Cliente", "MIRON DE AQUINO DIAS")
         cep = st.text_input("CEP", "73800-000")
-
+    
     endereco = st.text_area("Endereço Completo", "Rua 15, Casa 200, Setor Central, Formosa-GO")
-    item_declarado = st.text_input("Conteúdo / Item Declarado", "1x Capinha iPhone 13 Pro Max")
+    item_declarado = st.text_input("Conteúdo Declarado", "1x Capinha iPhone 13 Pro Max")
 
-# 4. Lógica do Botão (SÓ NO FINAL)
-if st.button("Gerar Etiqueta"):
+# 3. Lógica de Geração
+if st.button("GERAR ETIQUETA AGORA", use_container_width=True):
     # Preparar Dados
-    dados_qr = f"PEDIDO: {id_pedido}\nCLIENTE: {cliente}\nENDERECO: {endereco}\nCEP: {cep}\nITEM: {item_declarado}"
+    dados_qr = f"PEDIDO: {id_pedido}\nCLIENTE: {cliente}\nEND: {endereco}\nCEP: {cep}\nITEM: {item_declarado}"
+    
+    # Gerar Imagens em Memória
     img_bar = gerar_imagem_barcode(rastreio)
     img_qr = gerar_imagem_qrcode(dados_qr)
+    
+    # Converter para Base64
     bar_b64 = base64.b64encode(img_bar.getvalue()).decode()
     qr_b64 = base64.b64encode(img_qr.getvalue()).decode()
     hoje = datetime.now().strftime("%d/%m/%Y")
 
-    # Criar o HTML
-    html_etiqueta = f"""
-    <div style="background-color: white; padding: 20px; border: 3px solid black; color: black; font-family: monospace; width: 350px; margin: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid black; padding-bottom: 10px;">
-            <b style="font-size: 20px;">FSA MARKET</b>
-            <span style="background: black; color: white; padding: 2px 8px;">MAD LOG</span>
-        </div>
+    # Montagem do HTML (Design Limpo para Impressão)
+    etiqueta_html = f"""
+    <div style="background-color: white; padding: 15px; border: 3px solid black; color: black; font-family: 'Arial', sans-serif; width: 360px; margin: auto; line-height: 1.2;">
         
-        <div style="text-align: center; font-size: 22px; font-weight: bold; margin: 15px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid black; padding-bottom: 5px;">
+            <span style="font-size: 18px; font-weight: bold;">FSA MARKET</span>
+            <span style="background: black; color: white; padding: 3px 10px; font-size: 12px; font-weight: bold;">MAD LOG</span>
+        </div>
+
+        <div style="text-align: center; font-size: 22px; font-weight: bold; margin: 10px 0;">
             PEDIDO: {id_pedido}
         </div>
 
-        <div style="font-size: 14px; line-height: 1.2;">
-            <b>DESTINATÁRIO:</b><br>
-            {cliente}<br>
+        <div style="font-size: 13px; margin-bottom: 10px;">
+            <b style="font-size: 11px; text-transform: uppercase;">Destinatário:</b><br>
+            <span style="font-size: 16px; font-weight: bold;">{cliente}</span><br>
             {endereco}<br>
             <b>CEP: {cep}</b>
         </div>
 
-        <div style="border: 1px solid black; margin: 10px 0; padding: 5px; font-size: 12px; background: #eee;">
-            <b>CONTEÚDO:</b> {item_declarado}
+        <div style="border: 1px solid black; padding: 5px; font-size: 11px; background: #f2f2f2; margin-bottom: 10px;">
+            <b>CONTEÚDO DECLARADO:</b><br>
+            {item_declarado}
         </div>
 
-        <div style="text-align: center; margin-top: 15px;">
-            <img src="data:image/png;base64,{bar_b64}" width="280">
-            <p style="font-size: 14px; font-weight: bold; margin: 0;">{rastreio}</p>
-            <br>
-            <img src="data:image/png;base64,{qr_b64}" width="120">
-            <p style="font-size: 10px;">SCAN PARA CONFERÊNCIA</p>
+        <div style="text-align: center;">
+            <img src="data:image/png;base64,{bar_b64}" style="width: 100%; max-height: 60px;">
+            <p style="font-size: 13px; font-weight: bold; margin: 2px 0;">{rastreio}</p>
+            
+            <div style="margin-top: 10px;">
+                <img src="data:image/png;base64,{qr_b64}" width="100">
+                <p style="font-size: 9px; color: #555; margin: 0;">SCAN PARA CONFERÊNCIA</p>
+            </div>
         </div>
 
-        <div style="border-top: 1px solid black; margin-top: 10px; padding-top: 5px; font-size: 10px; text-align: center;">
-            EMISSÃO: {hoje} | ORIGEM: FORMOSA-GO
+        <div style="border-top: 1px solid black; margin-top: 10px; padding-top: 5px; font-size: 9px; text-align: center; color: #444;">
+            EMISSÃO: {hoje} | ORIGEM: FORMOSA-GO | SPX EXPRESS
         </div>
     </div>
     """
+
+    # EXIBIÇÃO DA ETIQUETA
+    st.divider()
+    st.markdown(etiqueta_html, unsafe_allow_html=True)
+    st.divider()
     
-    st.markdown(html_etiqueta, unsafe_allow_html=True)
-    st.success("Etiqueta gerada com sucesso!")
+    st.info("💡 Dica: Para imprimir, clique com o botão direito na etiqueta e selecione 'Imprimir' ou tire um print da tela.")
