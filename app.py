@@ -73,7 +73,7 @@ if st.button("Gerar Etiqueta"):
         </div>
         <br>
         <div style="border-top: 1px solid black; padding-top: 5px; font-size: 10px; text-align: center;">
-            DATA: 02/02/2026 | ROTA: CENTRO-FORMOSA
+            DATA: 02/02/2026 | ROTA: FSA-CITY
         </div>
     </div>
     """, unsafe_allow_html=True)
