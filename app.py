@@ -4,8 +4,9 @@ from barcode.writer import ImageWriter
 import qrcode
 from io import BytesIO
 import base64
+from datetime import datetime
 
-# Configuração da Página
+# 1. Configuração da Página
 st.set_page_config(page_title="Gerador de Etiquetas MAD", page_icon="🏷️")
 
 def gerar_imagem_barcode(dados):
@@ -24,7 +25,7 @@ def gerar_imagem_qrcode(dados):
     img.save(buffer, format="PNG")
     return buffer
 
-# Interface
+# 2. Interface de Entrada
 st.title("🏷️ Criador de Etiquetas MAD")
 st.write("Preencha os dados abaixo para gerar a etiqueta de envio.")
 
@@ -38,43 +39,26 @@ with st.container():
         cep = st.text_input("CEP", "73800-000")
 
     endereco = st.text_area("Endereço Completo", "Rua 15, Casa 200, Setor Central, Formosa-GO")
-    # NOVO CAMPO: Item Declarado
     item_declarado = st.text_input("Conteúdo / Item Declarado", "1x Capinha iPhone 13 Pro Max")
 
+# 3. Geração da Etiqueta
 if st.button("Gerar Etiqueta"):
-    # Dados combinados para o QR Code (Agora inclui o Item)
-    dados_qr = f"PEDIDO: {id_pedido}\nCLIENTE: {cliente}\nENDERECO: {endereco}\nCEP: {cep}\nCONTEUDO: {item_declarado}"
+    # Dados para o QR Code
+    dados_qr = f"PEDIDO: {id_pedido}\nCLIENTE: {cliente}\nENDERECO: {endereco}\nCEP: {cep}\nITEM: {item_declarado}"
     
-    # Geração dos códigos
+    # Gerar Imagens
     img_bar = gerar_imagem_barcode(rastreio)
     img_qr = gerar_imagem_qrcode(dados_qr)
+    
+    # Converter para Base64 para exibir no HTML
+    bar_base64 = base64.b64encode(img_bar.getvalue()).decode()
+    qr_base64 = base64.b64encode(img_qr.getvalue()).decode()
+    data_atual = datetime.now().strftime("%d/%m/%Y")
 
-    # Layout da Etiqueta em HTML/CSS
+    # Layout HTML corrigido (FECHAMENTO NA LINHA 80)
     st.markdown(f"""
-    <div style="background-color: white; padding: 20px; border: 2px solid #000; color: black; font-family: 'Courier New', Courier, monospace; width: 380px; margin: auto;">
+    <div style="background-color: white; padding: 20px; border: 2px solid #000; color: black; font-family: monospace; width: 380px; margin: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <b style="font-size: 20px;">FSA MARKET</b>
-            <span style="border: 1px solid black; padding: 2px 5px;">PADRÃO SPX</span>
+            <span style="border: 1px solid black; padding: 2px 5px; font-weight: bold;">MAD LOG</span>
         </div>
-        <hr style="border: 1px solid black;">
-        <div style="text-align: center;">
-            <p style="margin: 0;">PEDIDO: {id_pedido}</p>
-        </div>
-        <br>
-        <p style="margin: 0; font-size: 14px;"><b>DESTINATÁRIO:</b></p>
-        <p style="margin: 0; font-size: 16px;">{cliente}</p>
-        <p style="margin: 0; font-size: 13px;">{endereco}</p>
-        <p style="margin: 0; font-size: 14px;"><b>CEP: {cep}</b></p>
-        
-        <div style="border: 1px solid #ccc; margin-top: 10px; padding: 5px;">
-            <p style="margin: 0; font-size: 11px;"><b>CONTEÚDO DECLARADO:</b></p>
-            <p style="margin: 0; font-size: 12px;">{item_declarado}</p>
-        </div>
-
-        <hr style="border: 0.5px dashed black;">
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-            <img src="data:image/png;base64,{base64.b64encode(img_bar.getvalue()).decode()}" width="300">
-            <p style="margin: 0; font-size: 12px;">{rastreio}</p>
-            <img src="data:image/png;base64,{base64.b64encode(img_qr.getvalue()).decode()}" width="110">
-        </div>
-        <br
