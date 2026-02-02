@@ -16,7 +16,8 @@ def gerar_imagem_barcode(dados):
     return buffer
 
 def gerar_imagem_qrcode(dados):
-    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    # Aumentamos o 'version' para comportar mais texto se necessário
+    qr = qrcode.QRCode(version=None, box_size=10, border=2, error_correction=qrcode.constants.ERROR_CORRECT_L)
     qr.add_data(dados)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
@@ -40,11 +41,14 @@ with st.container():
     endereco = st.text_area("Endereço Completo", "Rua 15, Casa 200, Setor Central, Formosa-GO")
 
 if st.button("Gerar Etiqueta"):
+    # --- NOVIDADE AQUI: String completa para o QR Code ---
+    dados_qr = f"PEDIDO: {id_pedido}\nCLIENTE: {cliente}\nENDERECO: {endereco}\nCEP: {cep}"
+    
     # Geração dos códigos
     img_bar = gerar_imagem_barcode(rastreio)
-    img_qr = gerar_imagem_qrcode(f"Pedido:{id_pedido}|Cliente:{cliente}")
+    img_qr = gerar_imagem_qrcode(dados_qr)
 
-    # Layout da Etiqueta em HTML/CSS (Simulando o padrão de transportadora)
+    # Layout da Etiqueta em HTML/CSS
     st.markdown(f"""
     <div style="background-color: white; padding: 20px; border: 2px solid #000; color: black; font-family: 'Courier New', Courier, monospace; width: 380px; margin: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -64,13 +68,14 @@ if st.button("Gerar Etiqueta"):
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
             <img src="data:image/png;base64,{base64.b64encode(img_bar.getvalue()).decode()}" width="300">
             <p style="margin: 0; font-size: 12px;">{rastreio}</p>
-            <img src="data:image/png;base64,{base64.b64encode(img_qr.getvalue()).decode()}" width="100">
+            <img src="data:image/png;base64,{base64.b64encode(img_qr.getvalue()).decode()}" width="120">
+            <p style="font-size: 8px; margin-top: -5px;">Escaneie para detalhes do cliente</p>
         </div>
         <br>
         <div style="border-top: 1px solid black; padding-top: 5px; font-size: 10px; text-align: center;">
-            DATA: {st.session_state.get('data', '02/02/2026')} | ROTA: CENTRO-FORMOSA
+            DATA: 02/02/2026 | ROTA: CENTRO-FORMOSA
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    st.success("Etiqueta gerada! Você pode tirar um print ou usar a função de imprimir do navegador.")
+    st.success("Etiqueta gerada com sucesso!")
