@@ -43,11 +43,11 @@ st.title("🏷️ Criador de Etiquetas MAD")
 with st.form("meu_formulario"):
     col1, col2 = st.columns(2)
     with col1:
-        id_pedido = st.text_input("ID do Pedido", "10258")
-        rastreio = st.text_input("Código de Rastreio", "MAD789456123")
+        id_pedido = st.text_input("ID do Pedido", "520")
+        rastreio = st.text_input("Código de Rastreio", "5207417778")
     with col2:
         cliente = st.text_input("Nome do Cliente", "MIRON DE AQUINO DIAS")
-        cep = st.text_input("CEP", "73800-000")
+        cep = st.text_input("CEP", "73803-277")
     
     endereco = st.text_area("Endereço Completo", "Rua 15, Casa 200, Setor Central, Formosa-GO")
     item_declarado = st.text_input("Conteúdo Declarado", "1x Capinha iPhone 13 Pro Max")
