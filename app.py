@@ -50,8 +50,8 @@ with st.form("meu_formulario"):
         cliente = st.text_input("Nome do Cliente", "MIRON DE AQUINO DIAS")
         cep = st.text_input("CEP", "73803-277")
     
-    endereco = st.text_area("Endereço Completo", "Rua 15, Casa 200, Setor Central, Formosa-GO")
-    item_declarado = st.text_input("Conteúdo Declarado", "1x Capinha iPhone 13 Pro Max")
+    endereco = st.text_area("Endereço Completo", "Rua 520, Casa 741, Quadra 888, lote 7, Setor Central, Formosa-GO")
+    item_declarado = st.text_input("Conteúdo Declarado", "very money")
     
     gerar = st.form_submit_button("GERAR ETIQUETA PROFISSIONAL")
 
