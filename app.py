@@ -101,7 +101,7 @@ if gerar:
                 <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
                     <img src="data:image/png;base64,{qr_b64}" width="85" style="image-rendering: pixelated;">
                     <div style="text-align: left; font-size: 9px; line-height: 1.2; font-weight: bold;">
-                        RASTREIO DIGITAL<br>FSA MARKET SYNC<br>🔒 PROTOCOLO SEGURO
+                        RASTREIO DIGITAL<br>🔒 PROTOCOLO SEGURO
                     </div>
                 </div>
             </div>
