@@ -95,7 +95,8 @@ if gerar:
             </div>
             
             <div style="text-align: center; font-size: 9px; border-top: 1px solid black; margin-top: 15px; padding-top: 5px;">
-                {hoje} | ORIGEM: FORMOSA-GO | SPX
+                {hoje} | ORIGEM: FORMOSA-GO | 
+ミロン・アキノ
             </div>
         </div>
         
