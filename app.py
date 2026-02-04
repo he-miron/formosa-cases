@@ -64,7 +64,7 @@ if gerar:
     qr_b64 = base64.b64encode(img_qr.getvalue()).decode()
     hoje = datetime.now().strftime("%d/%m/%Y")
 
-    # HTML com o Botão de Impressão embutido
+    # HTML com o Botão de Impressão e Campo de Assinatura
     html_content = f"""
     <div id="etiqueta-container">
         <div style="background-color: white; padding: 15px; border: 3px solid black; color: black; font-family: Arial, sans-serif; width: 320px; margin: auto;" id="printable-area">
@@ -87,16 +87,24 @@ if gerar:
             </div>
             
             <div style="text-align: center;">
-                <img src="data:image/png;base64,{bar_b64}" style="width: 100%; height: 70px; image-rendering: pixelated;"><br>
+                <img src="data:image/png;base64,{bar_b64}" style="width: 100%; height: 60px; image-rendering: pixelated;"><br>
                 <b style="font-size: 14px; letter-spacing: 2px;">{rastreio}</b><br><br>
                 
-                <img src="data:image/png;base64,{qr_b64}" width="100" style="image-rendering: pixelated;"><br>
+                <img src="data:image/png;base64,{qr_b64}" width="80" style="image-rendering: pixelated;"><br>
                 <span style="font-size: 9px; font-weight: bold;">CONFERÊNCIA DE SEGURANÇA</span>
+            </div>
+
+            <div style="margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px;">
+                <div style="font-size: 10px; margin-bottom: 20px;"><b>ASSINATURA DO RECEBEDOR:</b></div>
+                <div style="border-bottom: 1px solid black; width: 100%; height: 20px;"></div>
+                <div style="display: flex; justify-content: space-between; font-size: 9px; margin-top: 5px;">
+                    <span>NOME: __________________________</span>
+                    <span>DOC: ________________</span>
+                </div>
             </div>
             
             <div style="text-align: center; font-size: 9px; border-top: 1px solid black; margin-top: 15px; padding-top: 5px;">
-                {hoje} | ORIGEM: FORMOSA-GO 🛒 | 
-マイロン・アキノ
+                {hoje} | ORIGEM: FORMOSA-GO 🛒 | MIRON DE AQUINO
             </div>
         </div>
         
@@ -117,4 +125,4 @@ if gerar:
     </style>
     """
 
-    st.components.v1.html(html_content, height=700, scrolling=True)
+    st.components.v1.html(html_content, height=850, scrolling=True)
