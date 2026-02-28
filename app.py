@@ -116,7 +116,7 @@ if gerar:
             </div>
             
             <div style="text-align: center; font-size: 9px; border-top: 1px solid black; margin-top: 15px; padding-top: 5px; color: #666;">
-                {hoje} | FORMOSA-GO | 🛒 FSA MARKET ONLINE 米隆·阿基諾·迪亞斯
+                {hoje} | FORMOSA-GO | 🛒 FSA MARKET ONLINE 미론 아퀴노 디아스
             </div>
         </div>
         
